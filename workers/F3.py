@@ -12,7 +12,7 @@ class F3Worker(AdvancedWorkerBase):
     TARGET_INFO = {}
     rows = xlsx_to_rows(GLOBAL_TARGET_RULES_FILE)
     for row in rows[1:]:
-        TARGET_INFO[row[0]] = [row[1], row[0], row[2], row[3], row[4]]
+        TARGET_INFO[row[0].split("_")[1]] = [row[1], row[0], row[2], row[3], row[4]]
 
     RESULTS = {}
     for customer, file_name in MATCH_RULES_FILES.items():
