@@ -90,6 +90,8 @@ class FinalWorker(AdvancedWorkerBase):
 
     def real_process(self):
         print(f"Final: {self.input_file}")
+        if self.customer not in self.TYPE_DICT[self.USED_RULE]:
+            return True
         field_to_index = {i: index for index, i in enumerate(self.data[0])}
         for index, row in enumerate(self.data):
             if index == 0:
@@ -103,6 +105,7 @@ class FinalWorker(AdvancedWorkerBase):
                     break
             self.data[index] = row
         self.data = [i for i in self.data if i]
+        return True
 
 
 class MonthlyFinalWorker(FinalWorker):

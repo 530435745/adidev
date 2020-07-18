@@ -134,6 +134,7 @@ class F3Worker(AdvancedWorkerBase):
                             row[data_indexes[3]] = exist_info["province"]
                             row[data_indexes[4]] = exist_info["address"]
                             row[data_indexes[5]] = exist_info["city"]
+                        break
                     else:
                         if failed:
                             self.error(f"文件{self.input_file}第{row_index}行查询无结果，"
@@ -143,7 +144,7 @@ class F3Worker(AdvancedWorkerBase):
                             self.get_from_online(self.customer, row[name_index], row[reference_index])
                             failed = True
                             continue
-
+        return True
 
 
 
