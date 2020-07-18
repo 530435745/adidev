@@ -1,5 +1,7 @@
-from workers.base import WorkerBase
+from workers.base import AdvancedWorkerBase
+from utils.xlsx_to_rows import xlsx_to_rows
 from config import *
+from datetime import datetime
 import openpyxl
 import json
 
@@ -43,9 +45,7 @@ def transform_replace(filter_info, replace_info):
 
 
 def transform_add_list(filename, key_fields, value_fields):
-    wb = openpyxl.load_workbook(filename)
-    ws = wb.worksheets[0]
-    rows = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows]
+    rows = xlsx_to_rows(filename)
     field_to_index = {i: index for index, i in enumerate(rows[0])}
     result = {}
     for row in rows[1:]:
@@ -54,7 +54,7 @@ def transform_add_list(filename, key_fields, value_fields):
         result[key] = value
 
     def _wrapper(data_row, data_field_to_index):
-        data_key = "-".join([data_row[data_field_to_index[key]] for key in key_fields.split("&")])
+        data_key = "-".join([data_row[data_field_to_index[k]] for k in key_fields.split("&")])
         data_row.extend(result.get(data_key, []))
         return data_row
     return _wrapper
@@ -75,11 +75,12 @@ def get_rules(rules_files):
         for ws in wb.worksheets:
             rows = [i for i in ws.rows][1:]
             for i in rows:
-                rules[customer].append(sheet_name_to_transform[ws.title](*[str(j.value).strip() if j.value else "" for j in i]))
+                rules[customer].append(sheet_name_to_transform[ws.title](*[str(j.value).strip()
+                                                                           if j.value is not None else "" for j in i]))
     return rules
 
 
-class FinalWorker(WorkerBase):
+class FinalWorker(AdvancedWorkerBase):
     TYPE_DICT = {
         "日特殊规则": get_rules(DAILY_RULES_FILES),
         "月特殊规则": get_rules(MONTHLY_RULES_FILES)
@@ -87,7 +88,8 @@ class FinalWorker(WorkerBase):
     # 子类覆盖此参数
     USED_RULE = None
 
-    def _process(self):
+    def real_process(self):
+        print(f"Final: {self.input_file}")
         field_to_index = {i: index for index, i in enumerate(self.data[0])}
         for index, row in enumerate(self.data):
             if index == 0:
@@ -106,6 +108,26 @@ class FinalWorker(WorkerBase):
 class MonthlyFinalWorker(FinalWorker):
     USED_RULE = "月特殊规则"
 
+    def get_output_files(self):
+        return [
+            os.path.join(
+                os.path.split(self.input_file)[0],
+                "month",
+                f"final_{os.path.split(self.input_file)[1].split('_')[1]}_"
+                f"{os.path.split(self.input_file)[1].split('_')[2]}_"
+                f"{datetime.now().strftime('%Y%m')}.xlsx"
+            )
+        ]
+
 
 class DailyFinalWorker(FinalWorker):
     USED_RULE = "日特殊规则"
+
+    def get_output_files(self):
+        return [
+            os.path.join(
+                os.path.split(self.input_file)[0],
+                f"final_{os.path.split(self.input_file)[1].split('_')[1]}_"
+                f"{os.path.split(self.input_file)[1].split('_')[2]}.xlsx"
+            )
+        ]

@@ -1,8 +1,10 @@
-from workers.base import WorkerBase
-from workers.F3 import F3Worker
+from workers.base import AdvancedWorkerBase
+from utils.xlsx_to_rows import xlsx_to_rows
 from config import GLOBAL_PRODUCT_RULES_FILE, PRODUCT_RULES_FILES
 from copy import deepcopy
+from datetime import datetime
 import openpyxl
+import os
 
 
 def load_product_rules(rules_file, origin_rules=None):
@@ -10,9 +12,7 @@ def load_product_rules(rules_file, origin_rules=None):
         origin_rules = deepcopy(origin_rules)
     else:
         origin_rules = {}
-    wb = openpyxl.load_workbook(rules_file)
-    ws = wb.worksheets[0]
-    rows = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows][1:]
+    rows = xlsx_to_rows(rules_file)[1:]
     for row in rows:
         origin_rules[f"{row[0]}-{row[1]}"] = {
             "name": row[2],
@@ -23,29 +23,40 @@ def load_product_rules(rules_file, origin_rules=None):
     return origin_rules
 
 
-class F2Worker(WorkerBase):
+class F2Worker(AdvancedWorkerBase):
     """
     产品规格过滤模块
     """
-    NEXT = F3Worker
     GLOBAL_PRODUCT_RULES = load_product_rules(GLOBAL_PRODUCT_RULES_FILE)
     CUSTOMER_PRODUCT_RULES = {
         customer: load_product_rules(file_name, GLOBAL_PRODUCT_RULES)
         for customer, file_name in PRODUCT_RULES_FILES.items()
     }
 
-    def _process(self):
+    def get_output_files(self):
+        return [self.input_file.replace("F1_", "F2_")]
+
+    def get_backup_file(self):
+        return os.path.join(
+            os.path.split(self.input_file)[0],
+            "status",
+            f"done{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{os.path.split(self.input_file)[1]}"
+        )
+
+    def real_process(self):
+        print(f"F2: {self.input_file}")
         title = self.data[0]
-        current_rule = self.CUSTOMER_PRODUCT_RULES.get(self.customer, GLOBAL_PRODUCT_RULES_FILE)
+        current_rule = self.CUSTOMER_PRODUCT_RULES.get(self.customer, self.GLOBAL_PRODUCT_RULES)
         name_pos = title.index("productName")
         spec_pos = title.index("productSpec")
         qty_pos = title.index("qty")
-        self.data.extend(["originProductName", "originProductSpec"])
+        self.data[0].extend(["originProductName", "originProductSpec"])
         to_delete = []
         for index, i in enumerate(self.data):
             if index == 0:
                 continue
             if result := current_rule.get(f"{i[name_pos]}-{i[spec_pos]}") is not None:
+                print(result)
                 if result != {}:
                     self.data[index].extend([i[name_pos], i[spec_pos]])
                     self.data[index][name_pos], self.data[index][spec_pos] = result["name"], result["size"]
@@ -53,7 +64,7 @@ class F2Worker(WorkerBase):
                 else:
                     to_delete.append(self.data[index])
             else:
-                self.error(f"文件{self.input_file}中，第{index}行未能匹配到规则")
+                self.error(f"文件{self.input_file}中，第{index + 1}行未能匹配到规则")
                 return False
         self.data = [i for index, i in enumerate(self.data) if index not in to_delete]
         return True

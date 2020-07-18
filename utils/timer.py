@@ -85,7 +85,6 @@ def do_at(interval=None, minute=None, hour=None, day=None):
             t = threading.Thread(target=main_worker)
             t.start()
             t.join()
-            return
     return Wrapper
 
 

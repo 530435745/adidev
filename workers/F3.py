@@ -1,27 +1,23 @@
-from workers.base import WorkerBase
-from workers.final import DailyFinalWorker, MonthlyFinalWorker
+from workers.base import AdvancedWorkerBase
+from utils.xlsx_to_rows import xlsx_to_rows
 from config import *
+from datetime import datetime
 import openpyxl
 import requests
 import time
 import os
 
 
-class F3Worker(WorkerBase):
-    NEXT = [DailyFinalWorker, MonthlyFinalWorker]
+class F3Worker(AdvancedWorkerBase):
     TARGET_INFO = {}
-    wb = openpyxl.load_workbook(GLOBAL_TARGET_RULES_FILE)
-    ws = wb.worksheets[0]
-    rows = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows]
+    rows = xlsx_to_rows(GLOBAL_TARGET_RULES_FILE)
     for row in rows[1:]:
-        TARGET_INFO[row[1]] = [row[2], row[1], row[3], row[4], row[5]]
+        TARGET_INFO[row[0]] = [row[1], row[0], row[2], row[3], row[4]]
 
     RESULTS = {}
     for customer, file_name in MATCH_RULES_FILES.items():
         RESULTS[customer] = {}
-        wb = openpyxl.load_workbook(file_name)
-        ws = wb.worksheets[0]
-        rows = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows]
+        rows = xlsx_to_rows(file_name)
         for row in rows[1:]:
             RESULTS[customer][f"{row[0]}-{row[1]}"] = {
                 "id": row[2],
@@ -34,6 +30,16 @@ class F3Worker(WorkerBase):
                 "city": row[9]
             }
 
+    def get_output_files(self):
+        return [self.input_file.replace("F2_", "F3_")]
+
+    def get_backup_file(self):
+        return os.path.join(
+            os.path.split(self.input_file)[0],
+            "status",
+            f"done{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{os.path.split(self.input_file)[1]}"
+        )
+
     @classmethod
     def write_back(cls, customer, name, reference):
         back_file = os.path.join(ORDERED_FILES_DIR, customer, "customer_list.xlsx")
@@ -45,7 +51,11 @@ class F3Worker(WorkerBase):
         if os.path.exists(back_file):
             wb = openpyxl.load_workbook(back_file)
             ws = wb.worksheets[0]
-            data = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows]
+            data = []
+            for i in ws.rows:
+                if not i[0].value:
+                    break
+                data.append([str(j.value).strip() if j.value is not None else "" for j in i])
             for index, i in enumerate(data):
                 if i[0] == name and i[1] == reference:
                     data[index] = to_add
@@ -91,7 +101,8 @@ class F3Worker(WorkerBase):
         })
         cls.write_back(customer, name, reference)
 
-    def _process(self):
+    def real_process(self):
+        print(f"F3: {self.input_file}")
         dealer_indexes = list(
             map(self.data[0].index ,
                 ["dealerName", "dealerCode", "dealerProvince", "dealerCity", "dealerLevel"]))
@@ -105,8 +116,9 @@ class F3Worker(WorkerBase):
             data_indexes = list(
                 map(self.data[0].index, ["supplierName", "supplierCode"]))
         reference_index = self.data[0].index("dealerProvince")
-        if repeat_data := self.TARGET_INFO.get(self.customer):
-            self.error(f"未在目标清单中找到经销商信息，经销商代码：{self.customer}")
+        repeat_data = self.TARGET_INFO.get(self.customer)
+        if not repeat_data:
+            self.error(f"当前文件：{self.input_file}, 未在目标清单中找到经销商信息，经销商代码：{self.customer}")
             return False
         for row_index, row in enumerate(self.data[1:]):
             for index in range(5):

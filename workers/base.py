@@ -1,5 +1,6 @@
 from utils.logger import logger
 from datetime import datetime
+from utils.xlsx_to_rows import xlsx_to_rows
 import shutil
 import openpyxl
 import traceback
@@ -12,27 +13,34 @@ def now_str():
 
 
 class WorkerBase(object):
-    # 下一个处理模块
-    NEXT = None
-
-    def __init__(self, input_file, output_files, backup_file):
+    def __init__(self, input_file):
+        self.data = None
         self.input_file = input_file
-        self.status, self.file_type, self.customer = self.input_file.split(os.sep)[-1].split("_")[:3]
-        self.output_files = output_files
-        self.backup_file = backup_file
+        self.output_files = self.get_output_files()
+        self.backup_file = self.get_backup_file()
         if input_file.endswith(".xls") or input_file.endswith(".xlsx"):
-            wb = openpyxl.load_workbook(input_file)
-            ws = wb.worksheets[0]
-            self.data = [[str(j.value).strip() if j.value else "" for j in i] for i in ws.rows]
+            self.data = xlsx_to_rows(input_file)
         elif input_file.endswith(".csv"):
             reader = csv.reader(self.input_file)
             self.data = [i for i in reader]
         elif input_file.endswith(".err"):
-            self.data = None
+            pass
+        elif input_file.endswith(".old"):
+            pass
         else:
-            self.data = None
-            shutil.move(self.input_file, self.input_file + ".err")
-            logger.error(f"发现未知格式文件{self.input_file}，已移动到{self.input_file}.err")
+            self.error(f"发现未知格式文件{self.input_file}")
+
+    def get_output_files(self):
+        """
+        生成返回文件列表
+        :return:
+        """
+
+    def get_backup_file(self):
+        """
+        生成备份文件位置
+        :return:
+        """
 
     def error(self, content):
         """
@@ -41,31 +49,56 @@ class WorkerBase(object):
         :return:
         """
         logger.error(content)
-        logger.error(f"移动出错文件{self.input_file}至{self.input_file}.err")
-        shutil.move(self.input_file, self.input_file + ".err")
+        shutil.move(self.input_file, self.input_file.split(".")[0] + ".err.xlsx")
 
-    def _process(self):
+    def real_process(self):
         """
         实际工作内容
         :return: 执行成功时返回True，失败时返回False
         """
         return True
 
+    @staticmethod
+    def mkdir(filename):
+        path = os.path.split(filename)[0]
+        try:
+            os.makedirs(path)
+        except Exception as e:
+            pass
+
     def process(self):
         """
         调用执行函数
         :return:
         """
-        try:
-            result = self._process()
-        except Exception as e:
-            self.error(f"程序执行出错，请联系开发人员：\n{traceback.format_exc()}")
-            return
+        # try:
+        result = self.real_process()
+        # except Exception as e:
+        #     self.error(f"程序执行出错，请联系开发人员：\n{traceback.format_exc()}")
+        #     return
         if result:
             wb = openpyxl.Workbook()
             ws = wb.active
             for i_index, i in enumerate(self.data):
                 for j_index, j in enumerate(i):
                     ws.cell(i_index + 1, j_index + 1).value = j
-            map(wb.save, self.output_files)
-            shutil.move(self.input_file, self.backup_file)
+            for output in self.output_files:
+                path, name = os.path.split(output)
+                self.mkdir(output)
+                for exist in os.listdir(path):
+                    if exist.split("_")[:3] == name.split("_")[:3]:
+                        shutil.move(os.path.join(path, exist), os.path.join(path, exist) + ".old")
+                wb.save(output)
+            if self.backup_file:
+                self.mkdir(self.backup_file)
+                shutil.move(self.input_file, self.backup_file)
+            return self.output_files
+
+
+class AdvancedWorkerBase(WorkerBase):
+    def __init__(self, input_file):
+        super().__init__(input_file)
+        if len(infos := self.input_file.split(os.sep)[-1].split("_")[:5]) < 5:
+            self.error(f"发现未知格式文件{self.input_file}")
+            return
+        self.status, self.transform_type, self.file_type, self.factory_code, self.customer = infos
