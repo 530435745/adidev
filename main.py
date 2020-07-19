@@ -37,6 +37,7 @@ def main_worker():
                 if filename.startswith("F3"):
                     MonthlyFinalWorker(os.path.join(dir_name, filename)).process()
                     DailyFinalWorker(os.path.join(dir_name, filename)).process()
+                    os.remove(os.path.join(dir_name, filename))
                     break
                 elif filename.startswith("F2"):
                     filename = F3Worker(os.path.join(dir_name, filename)).process()

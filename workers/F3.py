@@ -41,41 +41,48 @@ class F3Worker(AdvancedWorkerBase):
         )
 
     @classmethod
-    def write_back(cls, customer, name, reference):
-        back_file = os.path.join(ORDERED_FILES_DIR, customer, "customer_list.xlsx")
-        to_add = [
-            name, reference, cls.RESULTS[customer]["id"], cls.RESULTS[customer]["current"],
-            cls.RESULTS[customer]["name"], cls.RESULTS[customer]["code"], cls.RESULTS[customer]["type"],
-            cls.RESULTS[customer]["province"], cls.RESULTS[customer]["address"], cls.RESULTS[customer]["city"]
-        ]
-        if os.path.exists(back_file):
-            wb = openpyxl.load_workbook(back_file)
-            ws = wb.worksheets[0]
-            data = []
-            for i in ws.rows:
-                if not i[0].value:
-                    break
-                data.append([str(j.value).strip() if j.value is not None else "" for j in i])
-            for index, i in enumerate(data):
-                if i[0] == name and i[1] == reference:
-                    data[index] = to_add
-                    break
-            else:
-                data.append(to_add)
-        else:
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            title = ["originCustomerName", "reference", "别名ID", "当前状态",
-                     "customerName", "customerCode", "customerProvince",
-                     "customerAddress", "customerCity"]
-            data = [title, to_add]
+    def set_rule(cls, factory, customer):
+        cls.RESULTS[customer] = {}
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        title = ["originCustomerName", "reference", "别名ID", "当前状态",
+                 "customerName", "customerCode", "customerProvince",
+                 "customerAddress", "customerCity"]
+        data = [title]
         for index_i, i in enumerate(data):
             for index_j, j in enumerate(i):
-                ws.cell(index_i, index_j).value = j
+                ws.cell(index_i + 1, index_j + 1).value = j
+        wb.save(os.path.join(ORDERED_FILES_DIR, f"{factory}_{customer}", "customer_list.xlsx"))
+
+    @classmethod
+    def write_back(cls, factory, customer, name, reference):
+        back_file = os.path.join(ORDERED_FILES_DIR, f"{factory}_{customer}", "customer_list.xlsx")
+        to_add = [
+            name, reference, cls.RESULTS[customer][f"{name}-{reference}"]["id"], cls.RESULTS[customer][f"{name}-{reference}"]["current"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["name"], cls.RESULTS[customer][f"{name}-{reference}"]["code"], cls.RESULTS[customer][f"{name}-{reference}"]["type"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["province"], cls.RESULTS[customer][f"{name}-{reference}"]["address"], cls.RESULTS[customer][f"{name}-{reference}"]["city"]
+        ]
+        wb = openpyxl.load_workbook(back_file)
+        ws = wb.worksheets[0]
+        data = []
+        for i in ws.rows:
+            if not i[0].value:
+                break
+            data.append([str(j.value).strip() if j.value is not None else "" for j in i])
+        for index, i in enumerate(data):
+            if i[0] == name and i[1] == reference:
+                data[index] = to_add
+                break
+        else:
+            data.append(to_add)
+        for index_i, i in enumerate(data):
+            for index_j, j in enumerate(i):
+                ws.cell(index_i + 1, index_j + 1).value = j
         wb.save(back_file)
 
     @classmethod
-    def get_from_online(cls, customer, name, reference):
+    def get_from_online(cls, factory, customer, name, reference):
+        print(f"Trying to get {name}-{reference} from server.")
         if info := cls.RESULTS[customer].get(f"{name}-{reference}"):
             response = requests.get(GET_RESULT_URL, params={"case_id": info["id"]})
             json_data = response.json()
@@ -99,10 +106,12 @@ class F3Worker(AdvancedWorkerBase):
             "address": business.get("addr"),
             "city": business.get("city")
         })
-        cls.write_back(customer, name, reference)
+        cls.write_back(factory, customer, name, reference)
 
     def real_process(self):
         print(f"F3: {self.input_file}")
+        if self.customer not in self.RESULTS:
+            self.set_rule(self.factory_code, self.customer)
         dealer_indexes = list(
             map(self.data[0].index ,
                 ["dealerName", "dealerCode", "dealerProvince", "dealerCity", "dealerLevel"]))
@@ -141,9 +150,13 @@ class F3Worker(AdvancedWorkerBase):
                                        f"查询信息：{{'query': '{row[name_index]}', 'reference': '{row[reference_index]}'}}")
                             return False
                         else:
-                            self.get_from_online(self.customer, row[name_index], row[reference_index])
+                            self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
                             failed = True
                             continue
+                else:
+                    self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
+                    failed = True
+                    continue
         return True
 
 

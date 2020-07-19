@@ -1,5 +1,6 @@
 from utils.logger import logger
 from datetime import datetime
+from config import FACTORY_CODE
 from utils.xlsx_to_rows import xlsx_to_rows
 import shutil
 import openpyxl
@@ -21,8 +22,17 @@ class WorkerBase(object):
         if input_file.endswith(".xls") or input_file.endswith(".xlsx"):
             self.data = xlsx_to_rows(input_file)
         elif input_file.endswith(".csv"):
-            reader = csv.reader(self.input_file)
-            self.data = [i for i in reader]
+            with open(self.input_file, 'rb') as csv_in:
+                with open(self.input_file, "w", encoding="utf-8") as csv_temp:
+                    for line in csv_in:
+                        if not line:
+                            break
+                        else:
+                            line = line.decode("utf-8", "ignore")
+                            csv_temp.write(str(line).rstrip() + '\n')
+            with open(self.input_file) as f:
+                reader = csv.reader(f)
+                self.data = [i for i in reader]
         elif input_file.endswith(".err"):
             pass
         elif input_file.endswith(".old"):
@@ -102,3 +112,9 @@ class AdvancedWorkerBase(WorkerBase):
             self.error(f"发现未知格式文件{self.input_file}")
             return
         self.status, self.transform_type, self.file_type, self.factory_code, self.customer = infos
+
+    def process(self):
+        if self.input_file.split(os.sep)[-1].split("_")[3] != FACTORY_CODE:
+            self.error(f"文件{self.input_file}命名不符合规则，或不属于当前厂商")
+            return
+        return super().process()

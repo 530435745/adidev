@@ -12,32 +12,23 @@ def load_header_rules(rules_file, origin_rules=None):
         origin_rules = deepcopy(origin_rules)
     else:
         origin_rules = {
-            "I": {"key_titles": [], "necessary": {}, "unnecessary": {}},
-            "P": {"key_titles": [], "necessary": {}, "unnecessary": {}},
-            "S": {"key_titles": [], "necessary": {}, "unnecessary": {}}
+            "I": {"key_titles": {}, "optional_titles": {}},
+            "P": {"key_titles": {}, "optional_titles": {}},
+            "S": {"key_titles": {}, "optional_titles": {}}
         }
     for sheet_name in origin_rules.keys():
         try:
             rows = xlsx_to_rows(rules_file, sheet_name)
         except KeyError:
             raise ValueError(f"规则文件{rules_file}中找不到必要sheet：{sheet_name}")
-        title = rows[0]
-        for index, i in enumerate(title):
-            if i:
-                origin_rules[sheet_name]["key_titles"].append(i)
+        current = "key_titles"
+        for index, i in enumerate(rows[0]):
+            if not i:
+                current = "optional_titles"
+            if origin := origin_rules[sheet_name][current].get(i):
+                origin_rules[sheet_name][current][i] = [row[index] for row in rows] + origin
             else:
-                sep_post = index
-                break
-        else:
-            raise ValueError(f"规则文件{rules_file}的{sheet_name}中找不到分隔空列，无法区分key值类型")
-        origin_rules[sheet_name]["optional_titles"] = title[sep_post + 1:]
-        for i in rows[1:]:
-            for index, j in enumerate(i):
-                if j:
-                    if index < sep_post:
-                        origin_rules[sheet_name]["necessary"][j] = title[index]
-                    else:
-                        origin_rules[sheet_name]["unnecessary"][j] = title[index]
+                origin_rules[sheet_name][current][i] = [row[index] for row in rows]
     return origin_rules
 
 
@@ -76,21 +67,34 @@ class F1Worker(AdvancedWorkerBase):
         print(f"F1: {self.input_file}")
         if self.customer not in self.TARGETS:
             return False
-        exist_keys = []
         if self.file_type not in ["I", "P", "S"]:
             self.error(f"发现命名异常文件：{self.input_file}")
             return False
         rule_info = self.CUSTOMER_HEADER_RULES.get(self.customer, GLOBAL_HEADER_RULES)[self.file_type]
-        for index, i in enumerate(self.data[0]):
-            if n_key := rule_info["necessary"].get(i):
-                self.data[0][index] = n_key
-                exist_keys.append(n_key)
-            elif un_key := rule_info["unnecessary"].get(i):
-                self.data[0][index] = un_key
+        lost_keys = []
+        for key, values in rule_info["key_titles"].items():
+            for value in values:
+                try:
+                    index = self.data[0].index(value)
+                except ValueError:
+                    continue
+                self.data[0][index] = key
+                break
             else:
-                pass
-        if lost_keys := [i for i in rule_info["key_titles"] if i not in exist_keys]:
-            self.error(f"文件{self.input_file}中，缺少若干关键列：{', '.join(lost_keys)}")
+                lost_keys.append(key)
+        if lost_keys:
+            self.error(f"文件{self.input_file}中，存在未能匹配到的关键列：{', '.join(lost_keys)}")
             return False
-        self.data[0].extend([i for i in rule_info["optional_titles"] if i not in self.data[0]])
+        lost_keys = []
+        for key, values in rule_info["optional_titles"].items():
+            for value in values:
+                try:
+                    index = self.data[0].index(value)
+                except ValueError:
+                    continue
+                self.data[0][index] = key
+                break
+            else:
+                lost_keys.append(key)
+        self.data[0].extend(lost_keys)
         return True

@@ -55,12 +55,11 @@ class F2Worker(AdvancedWorkerBase):
         for index, i in enumerate(self.data):
             if index == 0:
                 continue
-            if result := current_rule.get(f"{i[name_pos]}-{i[spec_pos]}") is not None:
-                print(result)
+            if (result := current_rule.get(f"{i[name_pos]}-{i[spec_pos]}")) is not None:
                 if result != {}:
                     self.data[index].extend([i[name_pos], i[spec_pos]])
                     self.data[index][name_pos], self.data[index][spec_pos] = result["name"], result["size"]
-                    self.data[index][qty_pos] = result["multi"] * int(self.data[index][qty_pos])
+                    self.data[index][qty_pos] = result["multi"] * int(float(self.data[index][qty_pos]))
                 else:
                     to_delete.append(self.data[index])
             else:
