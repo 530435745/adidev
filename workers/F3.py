@@ -97,7 +97,9 @@ class F3Worker(AdvancedWorkerBase):
             "id": json_data["data"]["case_id"],
             "current": json_data["data"]["status"]
         }
-        business = json_data["data"].get("business", {})
+        business = json_data["data"].get("business")
+        if not business:
+            business = {}
         cls.RESULTS[customer][f"{name}-{reference}"].update({
             "name": business.get("name"),
             "code": business.get("p_code"),
@@ -113,7 +115,7 @@ class F3Worker(AdvancedWorkerBase):
         if self.customer not in self.RESULTS:
             self.set_rule(self.factory_code, self.customer)
         dealer_indexes = list(
-            map(self.data[0].index ,
+            map(self.data[0].index,
                 ["dealerName", "dealerCode", "dealerProvince", "dealerCity", "dealerLevel"]))
         if self.file_type == "S":
             name_index = self.data[0].index("customerName")
@@ -132,6 +134,9 @@ class F3Worker(AdvancedWorkerBase):
         for row_index, row in enumerate(self.data[1:]):
             for index in range(5):
                 row[dealer_indexes[index]] = repeat_data[index]
+            if not row[name_index]:
+                self.error(f"第{row_index + 1}行中，supplierName或customerName列为空值，无法继续进行匹配")
+                return False
             failed = False
             while True:
                 if exist_info := self.RESULTS[self.customer].get(f"{row[name_index]}-{row[reference_index]}"):
@@ -146,7 +151,7 @@ class F3Worker(AdvancedWorkerBase):
                         break
                     else:
                         if failed:
-                            self.error(f"第{row_index}行查询无结果，"
+                            self.error(f"第{row_index + 1}行查询无结果，"
                                        f"查询信息：{{\"query\": \"{row[name_index]}\", "
                                        f"\"reference\": \"{row[reference_index]}\"}}")
                             return False

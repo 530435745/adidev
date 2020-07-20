@@ -61,9 +61,9 @@ def transform_add_list(filename, key_fields, value_fields):
 
 
 sheet_name_to_transform = {
-    "筛选": transform_filter,
+    "单列过滤": transform_filter,
     "替换": transform_replace,
-    "加列": transform_add_list
+    "添加列": transform_add_list
 }
 
 
@@ -75,8 +75,13 @@ def get_rules(rules_files):
         for ws in wb.worksheets:
             rows = [i for i in ws.rows][1:]
             for i in rows:
-                rules[customer].append(sheet_name_to_transform[ws.title](*[str(j.value).strip()
+                try:
+                    rules[customer].append(sheet_name_to_transform[ws.title](*[str(j.value).strip()
                                                                            if j.value is not None else "" for j in i]))
+                except KeyError:
+                    raise ValueError(f"{rules_file}中存在不合法的表名: {ws.title}")
+                except FileNotFoundError:
+                    raise ValueError(f"{rules_file}中，指定的映射表文件不存在")
     return rules
 
 

@@ -41,7 +41,7 @@ def main_worker():
             break
         aim_dirs[row[0]] = row[1]
     # 遍历待分发目录，整体判断该目录下文件是否符合分发标准
-    pattern = re.compile(r"(FTP|MNL|ADI)_[IPS]_.+")
+    pattern = re.compile(r"(FTP|MNL|ADI)_([IPS])_.+")
     for src_dir, dst_dir in aim_dirs.items():
         if not os.path.exists(src_dir):
             continue
@@ -51,6 +51,7 @@ def main_worker():
             logger.error(f"待分发目录{src_dir}中，"
                          f"发现IPS文件个数分别为: {symbols.count('I')}，{symbols.count('P')}，{symbols.count('S')}，"
                          f"已忽略。")
+            logger.error("---------------------------------------------------------------------------")
             continue
         for filename in files:
             F0Worker(os.path.join(src_dir, filename)).process()
@@ -67,7 +68,7 @@ def main_worker():
         except FileExistsError:
             pass
         last = {}
-        pattern = re.compile(rf"F[0-3]_(FTP|MNL|ADI)_(IPS)_{FACTORY_CODE}_.+_\.(xlsx|xls|csv)")
+        pattern = re.compile(rf"F[0-3]_(FTP|MNL|ADI)_([IPS])_{FACTORY_CODE}_.+\.(xlsx|xls|csv)")
         for filename in files:
             if re.match(pattern, filename):
                 status, operator, file_type = filename.split("_")[:3]
