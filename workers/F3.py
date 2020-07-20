@@ -46,7 +46,7 @@ class F3Worker(AdvancedWorkerBase):
         wb = openpyxl.Workbook()
         ws = wb.active
         title = ["originCustomerName", "reference", "别名ID", "当前状态",
-                 "customerName", "customerCode", "customerProvince",
+                 "customerName", "customerCode", "customerType", "customerProvince",
                  "customerAddress", "customerCity"]
         data = [title]
         for index_i, i in enumerate(data):

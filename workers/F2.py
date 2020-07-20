@@ -60,9 +60,9 @@ class F2Worker(AdvancedWorkerBase):
                     self.data[index][name_pos], self.data[index][spec_pos] = result["name"], result["size"]
                     self.data[index][qty_pos] = result["multi"] * int(float(self.data[index][qty_pos]))
                 else:
-                    to_delete.append(self.data[index])
+                    self.data[index] = []
             else:
                 self.error(f"第{index + 1}行未能匹配到规则，产品规格为: {i[name_pos]}-{i[spec_pos]}")
                 return False
-        self.data = [i for index, i in enumerate(self.data) if index not in to_delete]
+        self.data = [i for i in self.data if i]
         return True

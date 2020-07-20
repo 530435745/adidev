@@ -93,9 +93,14 @@ def main_worker():
                     if isinstance(filename, list):
                         filename = filename[0].split(os.sep)[-1]
                     if filename.startswith("F3"):
-                        MonthlyFinalWorker(os.path.join(src_dir, filename)).process()
-                        DailyFinalWorker(os.path.join(src_dir, filename)).process()
-                        os.remove(os.path.join(src_dir, filename))
+                        m_result = MonthlyFinalWorker(os.path.join(src_dir, filename)).process()
+                        d_result = DailyFinalWorker(os.path.join(src_dir, filename)).process()
+                        if m_result and d_result:
+                            shutil.move(os.path.join(src_dir, filename), os.path.join(
+                                src_dir,
+                                "status",
+                                f"done{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{filename}"
+                            ))
                         break
                     elif filename.startswith("F2"):
                         filename = F3Worker(os.path.join(src_dir, filename)).process()

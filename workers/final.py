@@ -25,8 +25,8 @@ def transform_filter(field, value, filter_type):
                 data_value = float(data_row[data_field_to_index[field]])
             except ValueError:
                 return "该列存在非法元素无法进行区间比对"
-            cond1 = data_value < top if top else True
-            cond2 = data_value > bottom if bottom else True
+            cond1 = data_value <= top if top else True
+            cond2 = data_value >= bottom if bottom else True
             return data_row if all([cond1, cond2]) else []
     else:
         raise
@@ -111,6 +111,12 @@ class FinalWorker(AdvancedWorkerBase):
             self.data[index] = row
         self.data = [i for i in self.data if i]
         return True
+
+    def process(self):
+        if super().process():
+            return True
+        else:
+            return False
 
 
 class MonthlyFinalWorker(FinalWorker):
