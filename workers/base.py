@@ -2,9 +2,8 @@ from utils.logger import logger
 from datetime import datetime
 from config import FACTORY_CODE
 from utils.xlsx_to_rows import xlsx_to_rows
-import shutil
 import openpyxl
-import traceback
+import shutil
 import csv
 import os
 
@@ -35,8 +34,6 @@ class WorkerBase(object):
                 self.data = [i for i in reader]
         elif input_file.endswith(".err"):
             pass
-        elif input_file.endswith(".old"):
-            pass
         else:
             self.error(f"发现未知格式文件{self.input_file}")
 
@@ -59,7 +56,7 @@ class WorkerBase(object):
         :return:
         """
         logger.error(content)
-        shutil.move(self.input_file, self.input_file.split(".")[0] + ".err.xlsx")
+        shutil.move(self.input_file, self.input_file.split(".")[0] + ".err." + self.input_file.split(".")[1])
 
     def real_process(self):
         """
@@ -73,7 +70,7 @@ class WorkerBase(object):
         path = os.path.split(filename)[0]
         try:
             os.makedirs(path)
-        except Exception as e:
+        except FileExistsError:
             pass
 
     def process(self):
@@ -93,11 +90,7 @@ class WorkerBase(object):
                 for j_index, j in enumerate(i):
                     ws.cell(i_index + 1, j_index + 1).value = j
             for output in self.output_files:
-                path, name = os.path.split(output)
                 self.mkdir(output)
-                for exist in os.listdir(path):
-                    if exist.split("_")[:3] == name.split("_")[:3]:
-                        shutil.move(os.path.join(path, exist), os.path.join(path, exist) + ".old")
                 wb.save(output)
             if self.backup_file:
                 self.mkdir(self.backup_file)

@@ -1,10 +1,9 @@
 from workers.base import AdvancedWorkerBase
 from utils.xlsx_to_rows import xlsx_to_rows
-from config import GLOBAL_TARGET_RULES_FILE, GLOBAL_HEADER_RULES_FILE, HEADER_RULES_FILES
+from config import GLOBAL_HEADER_RULES_FILE, HEADER_RULES_FILES
 from datetime import datetime
 from copy import deepcopy
 import os
-import time
 
 
 def load_header_rules(rules_file, origin_rules=None):
@@ -39,15 +38,6 @@ class F1Worker(AdvancedWorkerBase):
     """
     列名匹配模块
     """
-    # 载入目标清单规则
-    TARGETS = []
-    rows = xlsx_to_rows(GLOBAL_TARGET_RULES_FILE)[1:]
-    for row in rows:
-        if not row[0]:
-            break
-        if int(datetime.now().strftime("%Y%m")) >= int(row[6]):
-            TARGETS.append(row[0].split("_")[1])
-
     # 载入列名匹配规则
     CUSTOMER_HEADER_RULES = {}
     for customer, file_name in HEADER_RULES_FILES.items():
@@ -65,8 +55,6 @@ class F1Worker(AdvancedWorkerBase):
 
     def real_process(self):
         print(f"F1: {self.input_file}")
-        if self.customer not in self.TARGETS:
-            return False
         if self.file_type not in ["I", "P", "S"]:
             self.error(f"发现命名异常文件：{self.input_file}")
             return False

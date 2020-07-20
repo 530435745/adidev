@@ -3,7 +3,6 @@ from utils.xlsx_to_rows import xlsx_to_rows
 from config import GLOBAL_PRODUCT_RULES_FILE, PRODUCT_RULES_FILES
 from copy import deepcopy
 from datetime import datetime
-import openpyxl
 import os
 
 
