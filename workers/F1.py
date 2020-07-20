@@ -55,9 +55,6 @@ class F1Worker(AdvancedWorkerBase):
 
     def real_process(self):
         print(f"F1: {self.input_file}")
-        if self.file_type not in ["I", "P", "S"]:
-            self.error(f"发现命名异常文件：{self.input_file}")
-            return False
         rule_info = self.CUSTOMER_HEADER_RULES.get(self.customer, GLOBAL_HEADER_RULES)[self.file_type]
         lost_keys = []
         for key, values in rule_info["key_titles"].items():
@@ -71,7 +68,7 @@ class F1Worker(AdvancedWorkerBase):
             else:
                 lost_keys.append(key)
         if lost_keys:
-            self.error(f"文件{self.input_file}中，存在未能匹配到的关键列：{', '.join(lost_keys)}")
+            self.error(f"存在未能匹配到的关键列：{', '.join(lost_keys)}")
             return False
         lost_keys = []
         for key, values in rule_info["optional_titles"].items():

@@ -35,7 +35,7 @@ class WorkerBase(object):
         elif input_file.endswith(".err"):
             pass
         else:
-            self.error(f"发现未知格式文件{self.input_file}")
+            self.error(f"格式未知，需为xlsx, xls或csv")
 
     def get_output_files(self):
         """
@@ -55,7 +55,9 @@ class WorkerBase(object):
         :param content:
         :return:
         """
-        logger.error(content)
+        logger.error(f"File : {self.input_file}")
+        logger.error(f"Error: {content}")
+        logger.error("---------------------------------------------------------------------------")
         shutil.move(self.input_file, self.input_file.split(".")[0] + ".err." + self.input_file.split(".")[1])
 
     def real_process(self):
@@ -102,12 +104,6 @@ class AdvancedWorkerBase(WorkerBase):
     def __init__(self, input_file):
         super().__init__(input_file)
         if len(infos := self.input_file.split(os.sep)[-1].split("_")[:5]) < 5:
-            self.error(f"发现未知格式文件{self.input_file}")
+            self.error(f"文件格式未知")
             return
         self.status, self.transform_type, self.file_type, self.factory_code, self.customer = infos
-
-    def process(self):
-        if self.input_file.split(os.sep)[-1].split("_")[3] != FACTORY_CODE:
-            self.error(f"文件{self.input_file}命名不符合规则，或不属于当前厂商")
-            return
-        return super().process()

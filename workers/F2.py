@@ -62,7 +62,7 @@ class F2Worker(AdvancedWorkerBase):
                 else:
                     to_delete.append(self.data[index])
             else:
-                self.error(f"文件{self.input_file}中，第{index + 1}行未能匹配到规则")
+                self.error(f"第{index + 1}行未能匹配到规则，产品规格为: {i[name_pos]}-{i[spec_pos]}")
                 return False
         self.data = [i for index, i in enumerate(self.data) if index not in to_delete]
         return True

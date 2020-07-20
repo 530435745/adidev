@@ -30,8 +30,10 @@ def unlock_errs():
                 )
 
 
-@do_at(interval=300)
+@do_at(interval=INTERVAL)
 def main_worker():
+    logger.error(f"任务开始，下次任务将在此轮任务结束后{INTERVAL}s后开始。")
+    logger.error("---------------------------------------------------------------------------")
     aim_dirs = {}
     rows = xlsx_to_rows(GLOBAL_SPLIT_RULES_FILE)[1:]
     for row in rows:
@@ -65,7 +67,7 @@ def main_worker():
         except FileExistsError:
             pass
         last = {}
-        pattern = re.compile(r"F[0-3]_(FTP|MNL|ADI)_(IPS)_.+_\.(xlsx|xls|csv)")
+        pattern = re.compile(rf"F[0-3]_(FTP|MNL|ADI)_(IPS)_{FACTORY_CODE}_.+_\.(xlsx|xls|csv)")
         for filename in files:
             if re.match(pattern, filename):
                 status, operator, file_type = filename.split("_")[:3]
@@ -102,6 +104,8 @@ def main_worker():
                         filename = F1Worker(os.path.join(src_dir, filename)).process()
                     else:
                         break
+    logger.error("任务结束")
+    logger.error("---------------------------------------------------------------------------")
 
 
 if __name__ == '__main__':

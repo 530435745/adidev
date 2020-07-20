@@ -6,8 +6,7 @@ SEARCH_DOMAIN = "mdmapileo.qtdatas.com"
 NEW_QUERY_URL = f"http://{SEARCH_DOMAIN}/x1/newquery"
 GET_RESULT_URL = f"http://{SEARCH_DOMAIN}/x1/getresult"
 FACTORY_CODE = "L"
-MOVE_INTERVAL = 300
-FILTER_INTERVAL = 300
+INTERVAL = 300
 ERROR_LOG = os.path.join(BASE_DIR, "error.log")
 
 # 待分发目录

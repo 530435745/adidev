@@ -127,7 +127,7 @@ class F3Worker(AdvancedWorkerBase):
         reference_index = self.data[0].index("dealerProvince")
         repeat_data = self.TARGET_INFO.get(self.customer)
         if not repeat_data:
-            self.error(f"当前文件：{self.input_file}, 未在目标清单中找到经销商信息，经销商代码：{self.customer}")
+            self.error(f"未在目标清单中找到经销商信息，经销商代码：{self.customer}")
             return False
         for row_index, row in enumerate(self.data[1:]):
             for index in range(5):
@@ -146,8 +146,9 @@ class F3Worker(AdvancedWorkerBase):
                         break
                     else:
                         if failed:
-                            self.error(f"文件{self.input_file}第{row_index}行查询无结果，"
-                                       f"查询信息：{{'query': '{row[name_index]}', 'reference': '{row[reference_index]}'}}")
+                            self.error(f"第{row_index}行查询无结果，"
+                                       f"查询信息：{{\"query\": \"{row[name_index]}\", "
+                                       f"\"reference\": \"{row[reference_index]}\"}}")
                             return False
                         else:
                             self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
