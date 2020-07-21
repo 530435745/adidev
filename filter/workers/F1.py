@@ -1,6 +1,6 @@
-from workers.base import AdvancedWorkerBase
-from utils.xlsx_to_rows import xlsx_to_rows
-from config import GLOBAL_HEADER_RULES_FILE, HEADER_RULES_FILES
+from filter.workers.base import AdvancedWorkerBase
+from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.config import GLOBAL_HEADER_RULES_FILE, HEADER_RULES_FILES
 from datetime import datetime
 from copy import deepcopy
 import os
@@ -24,6 +24,7 @@ def load_header_rules(rules_file, origin_rules=None):
         for index, i in enumerate(rows[0]):
             if not i:
                 current = "optional_titles"
+                continue
             if origin := origin_rules[sheet_name][current].get(i):
                 origin_rules[sheet_name][current][i] = [row[index] for row in rows] + origin
             else:

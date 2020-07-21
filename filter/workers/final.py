@@ -1,6 +1,6 @@
-from workers.base import AdvancedWorkerBase
-from utils.xlsx_to_rows import xlsx_to_rows
-from config import *
+from filter.workers.base import AdvancedWorkerBase
+from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.config import *
 from datetime import datetime
 import openpyxl
 import json
@@ -76,8 +76,11 @@ def get_rules(rules_files):
             rows = [i for i in ws.rows][1:]
             for i in rows:
                 try:
-                    rules[customer].append(sheet_name_to_transform[ws.title](*[str(j.value).strip()
-                                                                           if j.value is not None else "" for j in i]))
+                    rules[customer].append(
+                        sheet_name_to_transform[ws.title](
+                            *[str(j.value).strip() if j.value is not None else "" for j in i]
+                        )
+                    )
                 except KeyError:
                     raise ValueError(f"{rules_file}中存在不合法的表名: {ws.title}")
                 except FileNotFoundError:

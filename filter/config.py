@@ -2,6 +2,7 @@ import os
 
 # BASE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "adidev")
 BASE_DIR = "/demo"
+
 SEARCH_DOMAIN = "mdmapileo.qtdatas.com"
 NEW_QUERY_URL = f"http://{SEARCH_DOMAIN}/x1/newquery"
 GET_RESULT_URL = f"http://{SEARCH_DOMAIN}/x1/getresult"

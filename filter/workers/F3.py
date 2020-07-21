@@ -1,6 +1,6 @@
-from workers.base import AdvancedWorkerBase
-from utils.xlsx_to_rows import xlsx_to_rows
-from config import *
+from filter.workers.base import AdvancedWorkerBase
+from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.config import *
 from datetime import datetime
 import openpyxl
 import requests
@@ -58,9 +58,15 @@ class F3Worker(AdvancedWorkerBase):
     def write_back(cls, factory, customer, name, reference):
         back_file = os.path.join(ORDERED_FILES_DIR, f"{factory}_{customer}", "customer_list.xlsx")
         to_add = [
-            name, reference, cls.RESULTS[customer][f"{name}-{reference}"]["id"], cls.RESULTS[customer][f"{name}-{reference}"]["current"],
-            cls.RESULTS[customer][f"{name}-{reference}"]["name"], cls.RESULTS[customer][f"{name}-{reference}"]["code"], cls.RESULTS[customer][f"{name}-{reference}"]["type"],
-            cls.RESULTS[customer][f"{name}-{reference}"]["province"], cls.RESULTS[customer][f"{name}-{reference}"]["address"], cls.RESULTS[customer][f"{name}-{reference}"]["city"]
+            name, reference,
+            cls.RESULTS[customer][f"{name}-{reference}"]["id"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["current"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["name"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["code"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["type"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["province"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["address"],
+            cls.RESULTS[customer][f"{name}-{reference}"]["city"]
         ]
         wb = openpyxl.load_workbook(back_file)
         ws = wb.worksheets[0]
@@ -156,7 +162,9 @@ class F3Worker(AdvancedWorkerBase):
                                        f"\"reference\": \"{row[reference_index]}\"}}")
                             return False
                         else:
-                            self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
+                            self.get_from_online(
+                                self.factory_code, self.customer, row[name_index], row[reference_index]
+                            )
                             failed = True
                             continue
                 else:
@@ -164,7 +172,3 @@ class F3Worker(AdvancedWorkerBase):
                     failed = True
                     continue
         return True
-
-
-
-

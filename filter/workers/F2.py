@@ -1,6 +1,6 @@
-from workers.base import AdvancedWorkerBase
-from utils.xlsx_to_rows import xlsx_to_rows
-from config import GLOBAL_PRODUCT_RULES_FILE, PRODUCT_RULES_FILES
+from filter.workers.base import AdvancedWorkerBase
+from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.config import GLOBAL_PRODUCT_RULES_FILE, PRODUCT_RULES_FILES
 from copy import deepcopy
 from datetime import datetime
 import os
@@ -50,7 +50,6 @@ class F2Worker(AdvancedWorkerBase):
         spec_pos = title.index("productSpec")
         qty_pos = title.index("qty")
         self.data[0].extend(["originProductName", "originProductSpec"])
-        to_delete = []
         for index, i in enumerate(self.data):
             if index == 0:
                 continue

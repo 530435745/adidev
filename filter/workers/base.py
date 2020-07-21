@@ -1,7 +1,6 @@
-from utils.logger import logger
+from filter.utils.logger import logger
+from filter.utils.xlsx_to_rows import xlsx_to_rows
 from datetime import datetime
-from config import FACTORY_CODE
-from utils.xlsx_to_rows import xlsx_to_rows
 import openpyxl
 import shutil
 import csv

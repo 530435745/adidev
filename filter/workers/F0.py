@@ -1,10 +1,9 @@
-from workers.base import WorkerBase
-from config import GLOBAL_SPLIT_RULES_FILE
-from utils.MD5 import get_md5
-from utils.xlsx_to_rows import xlsx_to_rows
+from filter.workers.base import WorkerBase
+from filter.config import GLOBAL_SPLIT_RULES_FILE
+from filter.utils.MD5 import get_md5
+from filter.utils.xlsx_to_rows import xlsx_to_rows
 from datetime import datetime
 import os
-import csv
 
 
 class F0Worker(WorkerBase):
@@ -40,7 +39,8 @@ class F0Worker(WorkerBase):
         return os.path.join(
             os.path.split(self.input_file)[0],
             "history",
-            f"done{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{get_md5(self.input_file)}_{os.path.split(self.input_file)[1]}"
+            f"done{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_{get_md5(self.input_file)}_"
+            f"{os.path.split(self.input_file)[1]}"
         )
 
     def real_process(self):
@@ -48,7 +48,8 @@ class F0Worker(WorkerBase):
         if not self.data:
             return False
         file_path, file_name = os.path.split(self.input_file)
-        if file_name.split(self.RULES[file_path]["sep"])[int(self.RULES[file_path]["pos"])] == self.RULES[file_path]["sign"]:
+        if file_name.split(self.RULES[file_path]["sep"])[int(self.RULES[file_path]["pos"])] \
+                == self.RULES[file_path]["sign"]:
             factory_and_customer_code = file_path.split(os.path.sep)[-1]
             new_file_name = self.new_file_name(factory_and_customer_code)
             self.output_files = map(lambda x: os.path.join(x, new_file_name), self.RULES[file_path]["targets"])

@@ -28,9 +28,9 @@ def multiprocess():
 
 if __name__ == '__main__':
     def custom():
-            while True:
-                time.sleep(5)
-                print("AAAAAA")
+        while True:
+            time.sleep(5)
+            print("AAAAAA")
     pool = multiprocess()
     pool.apply_async(func=custom)
     pool.close()
