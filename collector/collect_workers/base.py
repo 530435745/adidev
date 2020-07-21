@@ -23,7 +23,7 @@ class CollectorWorkerBase:
                 "manual_mark": row[7],
                 "sub_company": row[8],
                 "history": row[9]
-            } for row in xlsx_to_rows(target)
+            } for row in xlsx_to_rows(target)[1:]
         })
 
     @classmethod

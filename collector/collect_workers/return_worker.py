@@ -20,7 +20,7 @@ class ReturnCollector(CollectorWorkerBase):
         today = datetime.now()
         today_pattern = re.compile(
             rf"F1_{cls.TARGETS[code]['operation_type'][:3]}_(?P<file_type>[IPS])_{code}_"
-            rf"{today.year}-{today.month}-{today.day}.+")
+            rf"{today.year}-{str(today.month).zfill(2)}-{str(today.day).zfill(2)}.+")
         date_pattern = re.compile(r"(?P<year>\d{4})[/\s-](?P<month>\d{2})[/\s-](?P<day>\d{2})")
         dirs = [current_dir, os.path.join(current_dir, "status")]
         for current_dir in dirs:
@@ -57,7 +57,7 @@ class ReturnCollector(CollectorWorkerBase):
                                               int(result.groupdict()["day"]) > max_num:
                                 max_date = row[date_index]
                                 max_num = current_num
-                    return_result[index][4] = sum([int(row[qty_index]) for row in file_data[1:]])
+                    return_result[index][4] = sum([int(float(row[qty_index])) for row in file_data[1:]])
                     return_result[index][5] = os.path.join(current_dir, file)
                     return_result[index][6] = max_date
                     return_result[index][8] = datetime.now().strftime("%Y%m%d")
