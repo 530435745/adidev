@@ -61,7 +61,6 @@ def do_at(interval=None, minute=None, hour=None, day=None):
                 exit_event.set()
                 time.sleep(1)
 
-            signal.signal(signal.SIGINT, signal_handler)
             signal.signal(signal.SIGTERM, signal_handler)
 
             def main_worker():
