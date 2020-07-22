@@ -50,6 +50,7 @@ class F2Worker(AdvancedWorkerBase):
         spec_pos = title.index("productSpec")
         qty_pos = title.index("qty")
         self.data[0].extend(["originProductName", "originProductSpec"])
+        errors = {}
         for index, i in enumerate(self.data):
             if index == 0:
                 continue
@@ -61,7 +62,10 @@ class F2Worker(AdvancedWorkerBase):
                 else:
                     self.data[index] = []
             else:
-                self.error(f"第{index + 1}行未能匹配到规则，产品规格为: {i[name_pos]}-{i[spec_pos]}")
-                return False
+                if f"{i[name_pos]}|{i[spec_pos]}" not in errors:
+                    errors[f"{i[name_pos]}|{i[spec_pos]}"] = f"第{index + 1}行未能匹配到规则，产品规格为: {i[name_pos]}|{i[spec_pos]}"
+        if errors:
+            self.error("\n".join(errors.values()))
+            return False
         self.data = [i for i in self.data if i]
         return True

@@ -6,6 +6,7 @@ import openpyxl
 import requests
 import time
 import os
+import json
 
 
 class F3Worker(AdvancedWorkerBase):
@@ -86,19 +87,32 @@ class F3Worker(AdvancedWorkerBase):
                 ws.cell(index_i + 1, index_j + 1).value = j
         wb.save(back_file)
 
+    @staticmethod
+    def graceful_get(url, data_dict):
+        while True:
+            try:
+                response = requests.get(url, params=data_dict)
+                json_data = response.json()
+                return json_data
+            except Exception as e:
+                pass
+
     @classmethod
     def get_from_online(cls, factory, customer, name, reference):
         print(f"Trying to get {name}-{reference} from server.")
         if info := cls.RESULTS[customer].get(f"{name}-{reference}"):
-            response = requests.get(GET_RESULT_URL, params={"case_id": info["id"]})
-            json_data = response.json()
+            json_data = cls.graceful_get(GET_RESULT_URL, {"case_id": info["id"]})
+            if not json_data["data"]:
+                return json_data["message"]
         else:
-            response = requests.get(NEW_QUERY_URL, params={"query": name, "reference": reference})
-            json_data = response.json()
+            json_data = cls.graceful_get(NEW_QUERY_URL, {"query": name, "reference": reference})
+            if not json_data["data"]:
+                return json_data["message"]
             case_id = json_data["data"]["case_id"]
-            time.sleep(3)
-            response = requests.get(GET_RESULT_URL, params={"case_id": case_id})
-            json_data = response.json()
+            time.sleep(1)
+            json_data = cls.graceful_get(GET_RESULT_URL, {"case_id": case_id})
+            if not json_data["data"]:
+                return json_data["message"]
         cls.RESULTS[customer][f"{name}-{reference}"] = {
             "id": json_data["data"]["case_id"],
             "current": json_data["data"]["status"]
@@ -137,12 +151,15 @@ class F3Worker(AdvancedWorkerBase):
         if not repeat_data:
             self.error(f"未在目标清单中找到经销商信息，经销商代码：{self.customer}")
             return False
+        errors = {}
         for row_index, row in enumerate(self.data[1:]):
             for index in range(5):
                 row[dealer_indexes[index]] = repeat_data[index]
             if not row[name_index]:
                 self.error(f"第{row_index + 1}行中，supplierName或customerName列为空值，无法继续进行匹配")
                 return False
+            if f"{row[name_index]}-{row[reference_index]}" in errors:
+                continue
             failed = False
             while True:
                 if exist_info := self.RESULTS[self.customer].get(f"{row[name_index]}-{row[reference_index]}"):
@@ -157,18 +174,28 @@ class F3Worker(AdvancedWorkerBase):
                         break
                     else:
                         if failed:
-                            self.error(f"第{row_index + 1}行查询无结果，"
-                                       f"查询信息：{{\"query\": \"{row[name_index]}\", "
-                                       f"\"reference\": \"{row[reference_index]}\"}}")
-                            return False
+                            errors[f"{row[name_index]}-{row[reference_index]}"] = \
+                                f"第{row_index + 1}行查询无结果，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}"
+                            break
                         else:
-                            self.get_from_online(
+                            msg = self.get_from_online(
                                 self.factory_code, self.customer, row[name_index], row[reference_index]
                             )
+                            if msg:
+                                errors[f"{row[name_index]}-{row[reference_index]}"] = \
+                                    f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
+                                break
                             failed = True
                             continue
                 else:
-                    self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
+                    msg = self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
+                    if msg:
+                        errors[f"{row[name_index]}-{row[reference_index]}"] = \
+                            f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
+                        break
                     failed = True
                     continue
+        if errors:
+            self.error("\n".join(errors.values()))
+            return False
         return True

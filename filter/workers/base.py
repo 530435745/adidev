@@ -55,7 +55,8 @@ class WorkerBase(object):
         :return:
         """
         logger.error(f"File : {self.input_file}")
-        logger.error(f"Error: {content}")
+        for c in content.split("\n"):
+            logger.error(f"Error: {c}")
         logger.error("---------------------------------------------------------------------------")
         shutil.move(self.input_file, self.input_file.split(".")[0] + ".err." + self.input_file.split(".")[1])
 
