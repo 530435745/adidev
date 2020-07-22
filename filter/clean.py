@@ -13,7 +13,7 @@ def mkdir(dir_name):
         pass
 
 
-@do_at(hour=21)
+@do_at(hour=21, minute=0)
 def clean():
     rows = xlsx_to_rows(SPLIT_RESULT_FILE)
     for row in rows[1:]:
