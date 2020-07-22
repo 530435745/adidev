@@ -6,7 +6,7 @@ import os
 
 class CollectorWorkerBase:
     # 指定收集结果文件
-    RESULT_FILE = ""
+    RESULT_FILE = None
     # 指定表头
     TITLES = []
 
@@ -57,7 +57,7 @@ class CollectorWorkerBase:
         for i_index, i in enumerate(data):
             for j_index, j in enumerate(i):
                 ws.cell(i_index + 1, j_index + 1).value = j
-        wb.save(cls.RESULT_FILE)
+        wb.save(cls.RESULT_FILE())
 
 
 

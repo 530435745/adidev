@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 # BASE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "adidev")
 BASE_DIR = "/demo"
@@ -6,7 +7,6 @@ BASE_DIR = "/demo"
 SEARCH_DOMAIN = "mdmapileo.qtdatas.com"
 NEW_QUERY_URL = f"http://{SEARCH_DOMAIN}/x1/newquery"
 GET_RESULT_URL = f"http://{SEARCH_DOMAIN}/x1/getresult"
-FACTORY_CODE = "L"
 INTERVAL = 300
 ERROR_LOG = os.path.join(BASE_DIR, "error.log")
 
@@ -24,6 +24,10 @@ GLOBAL_SPLIT_RULES_FILE = os.path.join(RULES_DIR, "L_split_rules.xlsx")
 GLOBAL_HEADER_RULES_FILE = os.path.join(RULES_DIR, "L_name_list.xlsx")
 # 全局产品过滤规则文件
 GLOBAL_PRODUCT_RULES_FILE = os.path.join(RULES_DIR, "L_product_list.xlsx")
+# 当天分发记录文件
+SPLIT_RESULT_FILE = lambda: os.path.join(RULES_DIR, f"分发记录-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
+# 当天产品未识别清单
+PRODUCT_FILTER_RESULT_FILE = lambda: os.path.join(RULES_DIR, f"产品未识别清单-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
 
 # 经销商字段匹配规则文件（根据已分发目录自动扫描添加）
 HEADER_RULES_FILES = {}

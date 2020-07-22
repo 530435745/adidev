@@ -95,7 +95,8 @@ class F3Worker(AdvancedWorkerBase):
                 json_data = response.json()
                 return json_data
             except Exception as e:
-                pass
+                print("Connection failed.")
+                time.sleep(1)
 
     @classmethod
     def get_from_online(cls, factory, customer, name, reference):

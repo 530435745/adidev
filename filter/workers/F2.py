@@ -1,5 +1,6 @@
 from filter.workers.base import AdvancedWorkerBase
 from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.utils.product_filter_logger import ProductFilterLogger
 from filter.config import GLOBAL_PRODUCT_RULES_FILE, PRODUCT_RULES_FILES
 from copy import deepcopy
 from datetime import datetime
@@ -65,6 +66,12 @@ class F2Worker(AdvancedWorkerBase):
                 if f"{i[name_pos]}|{i[spec_pos]}" not in errors:
                     errors[f"{i[name_pos]}|{i[spec_pos]}"] = f"第{index + 1}行未能匹配到规则，产品规格为: {i[name_pos]}|{i[spec_pos]}"
         if errors:
+            with ProductFilterLogger() as p:
+                for key, value in errors.items():
+                    p.data[key] = {
+                        "file_type": self.file_type,
+                        "customer": f"{self.factory_code}_{self.customer}"
+                    }
             self.error("\n".join(errors.values()))
             return False
         self.data = [i for i in self.data if i]
