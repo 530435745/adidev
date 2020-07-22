@@ -6,6 +6,8 @@ import signal
 
 def get_work_interval(interval=None, minute=None, hour=None, day=None):
     if interval:
+        print("下次执行时间: ", datetime.datetime.fromtimestamp(time.time() + interval))
+        print("还需等待：", interval)
         return interval
     now = datetime.datetime.now()
     if day is not None:

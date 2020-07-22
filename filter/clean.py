@@ -28,7 +28,3 @@ def clean():
             now = time.time()
             if now - os.stat(os.path.join(row[0], "history", filename)).st_ctime > 30 * 24 * 60 * 60:
                 os.remove(os.path.join(row[0], "history", filename))
-
-
-if __name__ == '__main__':
-    clean.delay()
