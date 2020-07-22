@@ -13,7 +13,7 @@ class F3Worker(AdvancedWorkerBase):
     TARGET_INFO = {}
     rows = xlsx_to_rows(GLOBAL_TARGET_RULES_FILE)
     for row in rows[1:]:
-        TARGET_INFO[row[0].split("_")[1]] = [row[1], row[0], row[2], row[3], row[4]]
+        TARGET_INFO[row[0]] = [row[1], row[0], row[2], row[3], row[4]]
 
     RESULTS = {}
     for customer, file_name in MATCH_RULES_FILES.items():
@@ -42,7 +42,7 @@ class F3Worker(AdvancedWorkerBase):
         )
 
     @classmethod
-    def set_rule(cls, factory, customer):
+    def set_rule(cls, customer):
         cls.RESULTS[customer] = {}
         wb = openpyxl.Workbook()
         ws = wb.active
@@ -53,11 +53,11 @@ class F3Worker(AdvancedWorkerBase):
         for index_i, i in enumerate(data):
             for index_j, j in enumerate(i):
                 ws.cell(index_i + 1, index_j + 1).value = j
-        wb.save(os.path.join(ORDERED_FILES_DIR, f"{factory}_{customer}", "customer_list.xlsx"))
+        wb.save(os.path.join(ORDERED_FILES_DIR, customer, "customer_list.xlsx"))
 
     @classmethod
-    def write_back(cls, factory, customer, name, reference):
-        back_file = os.path.join(ORDERED_FILES_DIR, f"{factory}_{customer}", "customer_list.xlsx")
+    def write_back(cls, customer, name, reference):
+        back_file = os.path.join(ORDERED_FILES_DIR, customer, "customer_list.xlsx")
         to_add = [
             name, reference,
             cls.RESULTS[customer][f"{name}-{reference}"]["id"],
@@ -99,7 +99,7 @@ class F3Worker(AdvancedWorkerBase):
                 time.sleep(1)
 
     @classmethod
-    def get_from_online(cls, factory, customer, name, reference):
+    def get_from_online(cls, customer, name, reference):
         print(f"Trying to get {name}-{reference} from server.")
         if info := cls.RESULTS[customer].get(f"{name}-{reference}"):
             json_data = cls.graceful_get(GET_RESULT_URL, {"case_id": info["id"]})
@@ -129,12 +129,12 @@ class F3Worker(AdvancedWorkerBase):
             "address": business.get("addr"),
             "city": business.get("city")
         })
-        cls.write_back(factory, customer, name, reference)
+        cls.write_back(customer, name, reference)
 
     def real_process(self):
         print(f"F3: {self.input_file}")
         if self.customer not in self.RESULTS:
-            self.set_rule(self.factory_code, self.customer)
+            self.set_rule(self.customer)
         dealer_indexes = list(
             map(self.data[0].index,
                 ["dealerName", "dealerCode", "dealerProvince", "dealerCity", "dealerLevel"]))
@@ -180,7 +180,7 @@ class F3Worker(AdvancedWorkerBase):
                             break
                         else:
                             msg = self.get_from_online(
-                                self.factory_code, self.customer, row[name_index], row[reference_index]
+                                self.customer, row[name_index], row[reference_index]
                             )
                             if msg:
                                 errors[f"{row[name_index]}-{row[reference_index]}"] = \
@@ -189,7 +189,7 @@ class F3Worker(AdvancedWorkerBase):
                             failed = True
                             continue
                 else:
-                    msg = self.get_from_online(self.factory_code, self.customer, row[name_index], row[reference_index])
+                    msg = self.get_from_online(self.customer, row[name_index], row[reference_index])
                     if msg:
                         errors[f"{row[name_index]}-{row[reference_index]}"] = \
                             f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"

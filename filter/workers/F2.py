@@ -70,7 +70,7 @@ class F2Worker(AdvancedWorkerBase):
                 for key, value in errors.items():
                     p.data[key] = {
                         "file_type": self.file_type,
-                        "customer": f"{self.factory_code}_{self.customer}"
+                        "customer": self.customer
                     }
             self.error("\n".join(errors.values()))
             return False

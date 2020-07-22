@@ -25,13 +25,13 @@ class F0Worker(WorkerBase):
     def __init__(self, input_file):
         super().__init__(input_file)
 
-    def new_file_name(self, f_and_c_code):
+    def new_file_name(self, customer):
         md5_str = get_md5(self.input_file)
         file_path, file_name = os.path.split(self.input_file)
         return f"F0_" \
                f"{file_name.split('_')[0]}_" \
                f"{file_name.split('_')[1]}_" \
-               f"{f_and_c_code}_" \
+               f"{customer}_" \
                f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}_" \
                f"{md5_str}.xlsx"
 
@@ -50,8 +50,8 @@ class F0Worker(WorkerBase):
         file_path, file_name = os.path.split(self.input_file)
         if file_name.split(self.RULES[file_path]["sep"])[int(self.RULES[file_path]["pos"])] \
                 == self.RULES[file_path]["sign"]:
-            factory_and_customer_code = file_path.split(os.path.sep)[-1]
-            new_file_name = self.new_file_name(factory_and_customer_code)
+            customer = file_path.split(os.path.sep)[-1]
+            new_file_name = self.new_file_name(customer)
             self.output_files = []
             for target in self.RULES[file_path]["targets"]:
                 self.output_files.append(os.path.join(target, new_file_name))

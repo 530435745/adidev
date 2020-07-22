@@ -106,4 +106,5 @@ class AdvancedWorkerBase(WorkerBase):
         if len(infos := self.input_file.split(os.sep)[-1].split("_")[:5]) < 5:
             self.error(f"文件格式未知")
             return
-        self.status, self.transform_type, self.file_type, self.factory_code, self.customer = infos
+        self.status, self.transform_type, self.file_type, factory_code, self.customer = infos
+        self.customer = f"{factory_code}_{self.customer}"

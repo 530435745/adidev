@@ -7,7 +7,6 @@ from datetime import datetime
 import os
 import re
 import shutil
-import openpyxl
 
 
 # 载入目标清单规则
@@ -33,10 +32,8 @@ def unlock_errs():
                 )
 
 
-@do_at(interval=INTERVAL)
-def main_worker():
-    logger.error(f"任务开始，下次任务将在此轮任务结束后{INTERVAL}s后开始。")
-    logger.error("---------------------------------------------------------------------------")
+@do_at(interval=SPLIT_INTERVAL)
+def before_main():
     aim_dirs = {}
     rows = xlsx_to_rows(GLOBAL_SPLIT_RULES_FILE)[1:]
     for row in rows:
@@ -49,12 +46,10 @@ def main_worker():
         for src_dir, dst_dir in aim_dirs.items():
             if not os.path.exists(src_dir):
                 s.data[src_dir]["exception"] = "待分发目录不存在"
-                logger.error("待分发目录不存在")
                 continue
             files = [f for f in os.listdir(src_dir) if re.match(pattern, f)]
             if not files:
                 s.data[src_dir]["exception"] = "暂无待分发文件"
-                logger.error("暂无待分发文件")
                 continue
             symbols = [i.split("_")[1] for i in files]
             if len(files) > 3 or len(set(symbols)) != len(symbols):
@@ -62,8 +57,6 @@ def main_worker():
                        f"发现IPS文件个数分别为: {symbols.count('I')}，{symbols.count('P')}，{symbols.count('S')}，" \
                        f"已忽略。"
                 s.data[src_dir]["exception"] = info
-                logger.error(info)
-                logger.error("---------------------------------------------------------------------------")
                 continue
             s.data[src_dir]["exception"] = ""
             for filename in files:
@@ -71,6 +64,9 @@ def main_worker():
                     s.data[src_dir]["files"].append(filename)
             s.data[src_dir]["latest"] = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
+
+@do_at(interval=INTERVAL)
+def after_main():
     # 遍历目标清单指向目录，进行后续操作
     for src_dir in TARGETS:
         if not os.path.exists(src_dir):
@@ -127,8 +123,3 @@ def main_worker():
                         break
     logger.error("任务结束")
     logger.error("---------------------------------------------------------------------------")
-
-
-if __name__ == '__main__':
-    unlock_errs()
-    main_worker.delay()
