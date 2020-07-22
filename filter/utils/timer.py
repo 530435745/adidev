@@ -54,24 +54,12 @@ def do_at(interval=None, minute=None, hour=None, day=None):
             return self.func(*args, **kwargs)
 
         def delay(self, *args, **kwargs):
-            exit_event = threading.Event()
-
-            def signal_handler(signum, frame):
-                print("等待最后一次任务完成中，请勿强制退出...")
-                exit_event.set()
-                time.sleep(1)
-
-            signal.signal(signal.SIGTERM, signal_handler)
-
             def main_worker():
                 # 延迟一秒开始，以便任务不会开始就被阻塞
                 time.sleep(1)
                 while True:
-                    exit_event.wait(get_work_interval(interval, minute, hour, day))
-                    if exit_event.is_set():
-                        break
+                    time.sleep(get_work_interval(interval, minute, hour, day))
                     self.func(*args, **kwargs)
-
             t = threading.Thread(target=main_worker)
             t.start()
             t.join()
