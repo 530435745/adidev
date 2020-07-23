@@ -101,7 +101,9 @@ def after_main():
                     )
         # 处理最新的IPS文件
         for filename in last.values():
-            if re.match(pattern, filename):
+            if ".err" in filename:
+                continue
+            if pattern.match(filename):
                 while filename:
                     if isinstance(filename, list):
                         filename = filename[0].split(os.sep)[-1]
