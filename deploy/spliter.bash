@@ -2,4 +2,4 @@
 
 PROJECTDIR=/home/adidev
 
-exec ${PROJECTDIR}/env/bin/python ${PROJECTDIR}/adidev/spliter_worker.py
+exec ${PROJECTDIR}/env/bin/python -u ${PROJECTDIR}/adidev/spliter_worker.py

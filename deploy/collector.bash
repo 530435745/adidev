@@ -2,4 +2,4 @@
 
 PROJECTDIR=/home/adidev
 
-exec ${PROJECTDIR}/env/bin/python ${PROJECTDIR}/adidev/collector_worker.py
+exec ${PROJECTDIR}/env/bin/python -u ${PROJECTDIR}/adidev/collector_worker.py
