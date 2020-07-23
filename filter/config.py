@@ -64,11 +64,6 @@ for _dir_name, _sub_dirs, _files in os.walk(ORDERED_FILES_DIR):
         if target is not None:
             target[_dir_name.split(os.sep)[-1]] = os.path.join(_dir_name, _filename)
 
-try:
-    from local_config import *
-except ImportError:
-    pass
-
 
 if __name__ == '__main__':
     print(BASE_DIR)

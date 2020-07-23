@@ -20,7 +20,7 @@ class SplitLogger:
             for row in rows:
                 self.data[row[0]] = {
                     "latest": row[5],
-                    "files": row[6].split(", "),
+                    "files": [i for i in row[6].split(", ") if i],
                     "exception": row[7]
                 }
         return self
