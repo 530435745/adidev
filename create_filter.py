@@ -14,8 +14,7 @@ if __name__ == '__main__':
     if os.path.exists(new_path):
         remove_dir(new_path)
     print("正在停止supervisor...（如有任务正在进行，此过程可能会持续很长时间）")
-    result = os.popen("supervisorctl stop all")
-    result.close()
+    result = os.system("supervisorctl stop all")
     print("supervisor已停止")
     shutil.copytree(origin_path, new_path)
     print(f"项目已复制到: {new_path}")
