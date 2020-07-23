@@ -4,10 +4,11 @@ import sys
 import shutil
 
 if __name__ == '__main__':
-    if not sys.argv:
-        print("执行此文件请携带厂商代码参数。")
+    try:
+        factory_code = sys.argv[1]
+    except IndexError:
+        print("执行此命令请携带厂商代码参数。")
         sys.exit(0)
-    factory_code = sys.argv[1]
     origin_path = "/home/adidev/adidev"
     new_path = f"/home/adidev/adidev_{factory_code}"
     if os.path.exists(new_path):
