@@ -59,6 +59,9 @@ class F2Worker(AdvancedWorkerBase):
                 if result != {}:
                     self.data[index].extend([i[name_pos], i[spec_pos]])
                     self.data[index][name_pos], self.data[index][spec_pos] = result["name"], result["size"]
+                    if not self.data[index][qty_pos]:
+                        self.error(f"第{index + 1}行qty为空值")
+                        return False
                     self.data[index][qty_pos] = result["multi"] * int(float(self.data[index][qty_pos]))
                 else:
                     self.data[index] = []

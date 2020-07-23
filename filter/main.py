@@ -15,6 +15,8 @@ target_rows = xlsx_to_rows(GLOBAL_TARGET_RULES_FILE)[1:]
 for target_row in target_rows:
     if not target_row[0]:
         break
+    if not target_row[6]:
+        raise ValueError("目标清单文件中，有标记为空值。")
     if int(datetime.now().strftime("%Y%m")) >= int(target_row[6]):
         TARGETS.append(os.path.join(ORDERED_FILES_DIR, target_row[0]))
 
