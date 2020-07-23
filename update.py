@@ -1,7 +1,5 @@
 from filter.utils.os_tools import remove_dir
 import os
-import sys
-import re
 import shutil
 
 if __name__ == '__main__':
@@ -13,6 +11,7 @@ if __name__ == '__main__':
                 f"/home/adidev/{filename}/filter/config.py",
                 f"/home/adidev/config_{filename.split('_')[1]}.py"
             )
+            remove_dir(f"/home/adidev/{filename}")
             shutil.copytree("/home/adidev/adidev", f"/home/adidev/{filename}")
             shutil.move(
                 f"/home/adidev/config_{filename.split('_')[1]}.py",
