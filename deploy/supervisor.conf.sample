@@ -1,0 +1,6 @@
+[program:{factory_code}_filter]
+command=/home/adidev/adidev_{factory_code}/deploy/filter.bash
+stdout_logfile = /home/adidev/log/filter.log   ; Where to write log messages
+redirect_stderr=true
+autostart=true
+autorestart=true
