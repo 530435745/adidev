@@ -25,6 +25,7 @@ if __name__ == '__main__':
     with open(f"{new_path}/deploy/filter.bash", "w") as w:
         with open(f"{origin_path}/deploy/filter.bash.sample", "r") as r:
             w.write(r.read().format(factory_code=factory_code))
+    os.system(f"chmod +x {new_path}/deploy/filter.bash")
     print(f"针对新项目的执行脚本与supervisor配置文件已就位")
     print("---------注意---------")
     print(f"请打开{new_path}/filter/config.py进行{factory_code}厂商相关配置")
