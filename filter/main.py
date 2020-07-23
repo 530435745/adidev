@@ -25,6 +25,8 @@ def unlock_errs():
     # 解锁所有err文件，只处理目标清单中的err，仅在服务第一次启动时执行
     pattern = re.compile(r".+\.err\.(xlsx|xls|csv)")
     for target_dir in TARGETS:
+        if not os.path.exists(target_dir):
+            continue
         files = os.listdir(target_dir)
         for filename in files:
             if re.match(pattern, filename):
