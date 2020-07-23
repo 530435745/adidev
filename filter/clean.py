@@ -1,6 +1,6 @@
 from filter.utils.timer import do_at
 from filter.utils.xlsx_to_rows import xlsx_to_rows
-from filter.config import SPLIT_RESULT_FILE
+from filter.config import GLOBAL_SPLIT_RULES_FILE
 import os
 import shutil
 import time
@@ -15,7 +15,7 @@ def mkdir(dir_name):
 
 @do_at(hour=21, minute=0)
 def clean():
-    rows = xlsx_to_rows(SPLIT_RESULT_FILE)
+    rows = xlsx_to_rows(GLOBAL_SPLIT_RULES_FILE)
     for row in rows[1:]:
         mkdir(os.path.join(row[0], "history"))
         for filename in os.listdir(row[0]):
