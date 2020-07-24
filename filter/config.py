@@ -5,12 +5,13 @@ from datetime import datetime
 BASE_DIR = "/demo"
 
 RULES_DIR = os.path.join(BASE_DIR, "rules")
+REPORT_DIR = os.path.join(BASE_DIR, "report")
 # 分发执行间隔
 SPLIT_INTERVAL = 300
 # 全局分发规则文件
 GLOBAL_SPLIT_RULES_FILE = os.path.join(RULES_DIR, "L_split_rules.xlsx")
 # 当天分发记录文件
-SPLIT_RESULT_FILE = lambda: os.path.join(RULES_DIR, f"分发记录-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
+SPLIT_RESULT_FILE = lambda: os.path.join(REPORT_DIR, f"分发记录-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
 # 已分发目录
 ORDERED_FILES_DIR = os.path.join(BASE_DIR, "spld")
 
@@ -24,7 +25,7 @@ GLOBAL_HEADER_RULES_FILE = os.path.join(RULES_DIR, "L_name_list.xlsx")
 # 全局产品过滤规则文件
 GLOBAL_PRODUCT_RULES_FILE = os.path.join(RULES_DIR, "L_product_list.xlsx")
 # 当天产品未识别清单
-PRODUCT_FILTER_RESULT_FILE = lambda: os.path.join(RULES_DIR, f"产品未识别清单-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
+PRODUCT_FILTER_RESULT_FILE = lambda: os.path.join(REPORT_DIR, f"产品未识别清单-{datetime.now().strftime('%Y-%m-%d')}.xlsx")
 
 # ----可选修改----
 # 查询地址相关
