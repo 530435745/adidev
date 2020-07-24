@@ -17,24 +17,27 @@ class WorkerBase(object):
         self.input_file = input_file
         self.output_files = self.get_output_files()
         self.backup_file = self.get_backup_file()
-        if input_file.endswith(".xls") or input_file.endswith(".xlsx"):
-            self.data = xlsx_to_rows(input_file)
-        elif input_file.endswith(".csv"):
-            with open(self.input_file, 'rb') as csv_in:
-                with open(self.input_file, "w", encoding="utf-8") as csv_temp:
-                    for line in csv_in:
-                        if not line:
-                            break
-                        else:
-                            line = line.decode("utf-8", "ignore")
-                            csv_temp.write(str(line).rstrip() + '\n')
-            with open(self.input_file) as f:
-                reader = csv.reader(f)
-                self.data = [i for i in reader]
-        elif input_file.endswith(".err"):
-            pass
-        else:
-            self.error(f"格式未知，需为xlsx, xls或csv")
+        try:
+            if input_file.endswith(".xls") or input_file.endswith(".xlsx"):
+                self.data = xlsx_to_rows(input_file)
+            elif input_file.endswith(".csv"):
+                with open(self.input_file, 'rb') as csv_in:
+                    with open(self.input_file, "w", encoding="utf-8") as csv_temp:
+                        for line in csv_in:
+                            if not line:
+                                break
+                            else:
+                                line = line.decode("utf-8", "ignore")
+                                csv_temp.write(str(line).rstrip() + '\n')
+                with open(self.input_file) as f:
+                    reader = csv.reader(f)
+                    self.data = [i for i in reader]
+            elif input_file.endswith(".err"):
+                pass
+            else:
+                self.error(f"格式未知，需为xlsx, xls或csv")
+        except Exception as e:
+            self.error(f"解析文件失败：{self.input_file}")
 
     def get_output_files(self):
         """
