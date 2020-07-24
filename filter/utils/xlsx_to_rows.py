@@ -23,6 +23,10 @@ def xlsx_to_rows(filename, sheet=None):
         rows = []
         for i in range(ws.nrows):
             row = ws.row_values(i)
+            types = list(ws.row_types(i))
+            for index in range(len(row)):
+                if types[index] == 3:
+                    row[index] = xlrd.xldate_as_datetime(row[index], 0).strftime("%Y/%m/%d")
             if not any(row := [str(j).strip() if j is not None else "" for j in row]):
                 break
             rows.append(row)
