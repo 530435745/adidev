@@ -50,10 +50,9 @@ class F0Worker(WorkerBase):
         file_path, file_name = os.path.split(self.input_file)
         if file_name.split(self.RULES[file_path]["sep"])[int(self.RULES[file_path]["pos"])] \
                 == self.RULES[file_path]["sign"]:
-            customer = file_path.split(os.path.sep)[-1]
-            new_file_name = self.new_file_name(customer)
             self.output_files = []
             for target in self.RULES[file_path]["targets"]:
+                new_file_name = self.new_file_name(target.split(os.sep))[-1]
                 self.output_files.append(os.path.join(target, new_file_name))
             return True
         return False
