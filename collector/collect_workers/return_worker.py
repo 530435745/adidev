@@ -22,7 +22,9 @@ class ReturnCollector(CollectorWorkerBase):
             rf"F1_{cls.TARGETS[code]['operation_type'][:3]}_(?P<file_type>[IPS])_{code}_"
             rf"{today.year}-{str(today.month).zfill(2)}-{str(today.day).zfill(2)}.+")
         date_pattern = re.compile(r"(?P<year>\d{4})[/\s-](?P<month>\d{2})[/\s-](?P<day>\d{2})")
-        dirs = [current_dir, os.path.join(current_dir, "status")]
+        dirs = [current_dir]
+        if os.path.exists(status_dir := os.path.join(current_dir, "status")):
+            dirs.append(status_dir)
         for current_dir in dirs:
             for file in os.listdir(current_dir):
                 if result := today_pattern.search(file):
