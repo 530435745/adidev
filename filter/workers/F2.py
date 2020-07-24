@@ -23,11 +23,13 @@ def load_product_rules(rules_file, origin_rules=None):
     return origin_rules
 
 
+GLOBAL_PRODUCT_RULES = load_product_rules(GLOBAL_PRODUCT_RULES_FILE)
+
+
 class F2Worker(AdvancedWorkerBase):
     """
     产品规格过滤模块
     """
-    GLOBAL_PRODUCT_RULES = load_product_rules(GLOBAL_PRODUCT_RULES_FILE)
     CUSTOMER_PRODUCT_RULES = {
         customer: load_product_rules(file_name, GLOBAL_PRODUCT_RULES)
         for customer, file_name in PRODUCT_RULES_FILES.items()
@@ -46,7 +48,7 @@ class F2Worker(AdvancedWorkerBase):
     def real_process(self):
         print(f"F2: {self.input_file}")
         title = self.data[0]
-        current_rule = self.CUSTOMER_PRODUCT_RULES.get(self.customer, self.GLOBAL_PRODUCT_RULES)
+        current_rule = self.CUSTOMER_PRODUCT_RULES.get(self.customer, GLOBAL_PRODUCT_RULES)
         name_pos = title.index("productName")
         spec_pos = title.index("productSpec")
         qty_pos = title.index("qty")
