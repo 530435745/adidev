@@ -1,5 +1,6 @@
 from filter.utils.logger import logger
 from filter.utils.xlsx_to_rows import xlsx_to_rows
+from filter.utils.char_change import process_csv2utf8
 from datetime import datetime
 import openpyxl
 import shutil
@@ -21,14 +22,7 @@ class WorkerBase(object):
             if input_file.endswith(".xls") or input_file.endswith(".xlsx"):
                 self.data = xlsx_to_rows(input_file)
             elif input_file.endswith(".csv"):
-                with open(self.input_file, 'rb') as csv_in:
-                    with open(self.input_file, "w", encoding="utf-8") as csv_temp:
-                        for line in csv_in:
-                            if not line:
-                                break
-                            else:
-                                line = line.decode("utf-8", "ignore")
-                                csv_temp.write(str(line).rstrip() + '\n')
+                process_csv2utf8(self.input_file)
                 with open(self.input_file) as f:
                     reader = csv.reader(f)
                     self.data = [i for i in reader]
@@ -98,7 +92,6 @@ class WorkerBase(object):
                 self.mkdir(output)
                 wb.save(output)
             if self.backup_file:
-                print("BackUp: ", self.backup_file)
                 self.mkdir(self.backup_file)
                 shutil.move(self.input_file, self.backup_file)
             return self.output_files
