@@ -98,6 +98,7 @@ class WorkerBase(object):
                 self.mkdir(output)
                 wb.save(output)
             if self.backup_file:
+                print("BackUp: ", self.backup_file)
                 self.mkdir(self.backup_file)
                 shutil.move(self.input_file, self.backup_file)
             return self.output_files
