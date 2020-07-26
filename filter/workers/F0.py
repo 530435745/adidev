@@ -53,8 +53,7 @@ class F0Worker(WorkerBase):
                 == self.RULES[file_path]["sign"]:
             self.output_files = []
             for target in self.RULES[file_path]["targets"]:
-                new_file_name = self.new_file_name(target.split(os.sep))[-1]
+                new_file_name = self.new_file_name(target.split(os.sep)[-1])
                 self.output_files.append(os.path.join(target, new_file_name))
-            print(json.dumps(self.output_files, indent=4))
             return True
         return False
