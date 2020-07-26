@@ -64,6 +64,8 @@ def before_main():
                 continue
             s.data[src_dir]["exception"] = ""
             for filename in files:
+                if ".err" in filename:
+                    continue
                 if F0Worker(os.path.join(src_dir, filename)).process():
                     s.data[src_dir]["files"].append(filename)
             s.data[src_dir]["latest"] = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
