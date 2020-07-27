@@ -84,6 +84,8 @@ class F1Worker(AdvancedWorkerBase):
             else:
                 lost_keys.append(key)
         self.data[0].extend(lost_keys)
+        for index in range(1, len(self.data)):
+            self.data[index].extend(["" for _ in range(len(lost_keys))])
         date_pattern = re.compile(r"(?P<year>\d{4})[/\s-]*(?P<month>\d{2})[/\s-]*(?P<day>\d{2})")
         field_to_index = {i: index for index, i in enumerate(self.data[0])}
         date_index = field_to_index["date"] if self.file_type in "PS" else field_to_index["inventoryReportDate"]
