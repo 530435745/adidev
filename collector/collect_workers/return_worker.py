@@ -37,8 +37,11 @@ class ReturnCollector(CollectorWorkerBase):
                         qty_index = field_to_index["qty"]
                         max_date = 0
                         for row in file_data[1:]:
-                            if current_num := int(row[control_date_index]) > max_date:
-                                max_date = current_num
+                            try:
+                                if current_num := int(row[control_date_index]) > max_date:
+                                    max_date = current_num
+                            except ValueError:
+                                break
                         return_result[index][4] = sum([int(float(row[qty_index])) for row in file_data[1:]])
                         return_result[index][6] = str(max_date)
                     return_result[index][5] = os.path.join(current_dir, file)
