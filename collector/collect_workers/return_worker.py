@@ -33,35 +33,14 @@ class ReturnCollector(CollectorWorkerBase):
                     index = ["P", "S", "I"].index(file_type)
                     if len(file_data) >= 2:
                         field_to_index = {i: index for index, i in enumerate(file_data[0])}
-                        date_index = field_to_index["date"] if file_type in "PS" else field_to_index["inventoryReportDate"]
+                        control_date_index = field_to_index["controlDate"]
                         qty_index = field_to_index["qty"]
-                        if not date_pattern.search(file_data[1][date_index]):
-                            if re.search(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})", file_data[1][date_index]):
-                                current_date_pattern = re.compile(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})")
-                            else:
-                                logger.error(f"{os.path.join(current_dir, file)}中，日期列无法匹配到任何规则，已跳过")
-                                continue
-                        else:
-                            current_date_pattern = date_pattern
-                        max_date = None
-                        max_num = None
+                        max_date = 0
                         for row in file_data[1:]:
-                            result = current_date_pattern.search(row[date_index])
-                            if not result:
-                                continue
-                            if not max_date:
-                                max_date = row[date_index]
-                                max_num = int(result.groupdict()["year"]) * 10000 + \
-                                          int(result.groupdict()["month"]) * 100 + \
-                                          int(result.groupdict()["day"])
-                            else:
-                                if current_num := int(result.groupdict()["year"]) * 10000 + \
-                                                  int(result.groupdict()["month"]) * 100 + \
-                                                  int(result.groupdict()["day"]) > max_num:
-                                    max_date = row[date_index]
-                                    max_num = current_num
+                            if current_num := int(row[control_date_index]) > max_date:
+                                max_date = current_num
                         return_result[index][4] = sum([int(float(row[qty_index])) for row in file_data[1:]])
-                        return_result[index][6] = max_date
+                        return_result[index][6] = str(max_date)
                     return_result[index][5] = os.path.join(current_dir, file)
                     return_result[index][8] = datetime.now().strftime("%Y%m%d")
                     return_result[index][9] = "已返回"
