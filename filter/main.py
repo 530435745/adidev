@@ -62,13 +62,18 @@ def before_main():
                        f"已忽略。"
                 s.data[src_dir]["exception"] = info
                 continue
-            s.data[src_dir]["exception"] = ""
+            has_file = False
             for filename in files:
                 if ".err" in filename:
                     continue
                 if F0Worker(os.path.join(src_dir, filename)).process():
                     s.data[src_dir]["files"].append(filename)
-            s.data[src_dir]["latest"] = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+                    has_file = True
+            if has_file:
+                s.data[src_dir]["exception"] = ""
+                s.data[src_dir]["latest"] = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+            else:
+                s.data[src_dir]["exception"] = "所有待分发文件均为空或读取出错"
 
 
 @do_at(interval=INTERVAL)

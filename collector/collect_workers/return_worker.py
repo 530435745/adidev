@@ -10,7 +10,7 @@ import re
 class ReturnCollector(CollectorWorkerBase):
     RESULT_FILE = COLLECTOR_RETURN_FILE
     TITLES = ["经销商代码", "经销商名称", "收集方式", "收集标记",
-              "销售条数", "文件名", "流向最大日期", "进销存类型", "最大返回日期", "状态"]
+              "销售数量", "文件名", "流向最大日期", "进销存类型", "最大返回日期", "状态"]
 
     @classmethod
     def add_line(cls, current_dir):
