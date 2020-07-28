@@ -21,7 +21,6 @@ class ReturnCollector(CollectorWorkerBase):
         today_pattern = re.compile(
             rf"F1_{cls.TARGETS[code]['operation_type'][:3]}_(?P<file_type>[IPS])_{code}_"
             rf"{today.year}-{str(today.month).zfill(2)}-{str(today.day).zfill(2)}.+")
-        date_pattern = re.compile(r"(?P<year>\d{4})[/\s-](?P<month>\d{2})[/\s-](?P<day>\d{2})")
         dirs = [current_dir]
         if os.path.exists(status_dir := os.path.join(current_dir, "status")):
             dirs.append(status_dir)
@@ -38,7 +37,7 @@ class ReturnCollector(CollectorWorkerBase):
                         max_date = 0
                         for row in file_data[1:]:
                             try:
-                                if current_num := int(row[control_date_index]) > max_date:
+                                if (current_num := int(row[control_date_index])) > max_date:
                                     max_date = current_num
                             except ValueError:
                                 break
