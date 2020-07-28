@@ -95,7 +95,7 @@ class F3Worker(AdvancedWorkerBase):
                 json_data = response.json()
                 return json_data
             except Exception as e:
-                print("Connection failed.")
+                print("Connection failed.", e)
                 time.sleep(1)
 
     @classmethod
