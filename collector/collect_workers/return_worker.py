@@ -20,7 +20,7 @@ class ReturnCollector(CollectorWorkerBase):
         today = datetime.now()
         today_pattern = re.compile(
             rf"F1_{cls.TARGETS[code]['operation_type'][:3]}_(?P<file_type>[IPS])_{code}_"
-            rf"{today.year}-{str(today.month).zfill(2)}-{str(today.day - 1).zfill(2)}.+")
+            rf"{today.year}-{str(today.month).zfill(2)}-{str(today.day).zfill(2)}.+")
         dirs = [current_dir]
         if os.path.exists(status_dir := os.path.join(current_dir, "status")):
             dirs.append(status_dir)
