@@ -139,32 +139,32 @@ class F3Worker(AdvancedWorkerBase):
             map(self.data[0].index,
                 ["dealerName", "dealerCode", "dealerProvince", "dealerCity", "dealerLevel"]))
         if self.file_type == "S":
-            name_index = self.data[0].index("customerName")
-            data_indexes = list(
-                map(self.data[0].index, ["customerName", "customerCode", "customerType", "customerProvince",
-                                         "customerAddress", "customerCity"]))
+            names = ["customerName", "customerCode", "customerType", "customerProvince",
+                    "customerAddress", "customerCity"]
         else:
-            name_index = self.data[0].index("supplierName")
-            data_indexes = list(
-                map(self.data[0].index, ["supplierName", "supplierCode"]))
+            names = ["supplierName", "supplierCode"]
+        data_indexes = list(map(self.data[0].index, names))
         reference_index = self.data[0].index("dealerProvince")
         repeat_data = self.TARGET_INFO.get(self.customer)
         if not repeat_data:
             self.error(f"未在目标清单中找到经销商信息，经销商代码：{self.customer}")
             return False
         errors = {}
-        for row_index, row in enumerate(self.data[1:]):
+        for row_index, row in enumerate(self.data):
+            if row_index == 0:
+                row.append("origin" + names[0][0].upper() + names[0][1:])
             for index in range(5):
                 row[dealer_indexes[index]] = repeat_data[index]
-            if not row[name_index]:
+            if not row[data_indexes[0]]:
                 self.error(f"第{row_index + 1}行中，supplierName或customerName列为空值，无法继续进行匹配")
                 return False
-            if f"{row[name_index]}-{row[reference_index]}" in errors:
+            if f"{row[data_indexes[0]]}-{row[reference_index]}" in errors:
                 continue
             failed = False
             while True:
-                if exist_info := self.RESULTS[self.customer].get(f"{row[name_index]}-{row[reference_index]}"):
+                if exist_info := self.RESULTS[self.customer].get(f"{row[data_indexes[0]]}-{row[reference_index]}"):
                     if exist_info["current"] in ["E1", "W1", "M1"]:
+                        row.append(row[data_indexes[0]])
                         row[data_indexes[0]] = exist_info["name"]
                         row[data_indexes[1]] = exist_info["code"]
                         if self.file_type == "S":
@@ -175,24 +175,24 @@ class F3Worker(AdvancedWorkerBase):
                         break
                     else:
                         if failed:
-                            errors[f"{row[name_index]}-{row[reference_index]}"] = \
-                                f"第{row_index + 1}行查询无结果，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}"
+                            errors[f"{row[data_indexes[0]]}-{row[reference_index]}"] = \
+                                f"第{row_index + 1}行查询无结果，查询信息：{{\"query\": \"{row[data_indexes[0]]}\", \"reference\": \"{row[reference_index]}\"}}"
                             break
                         else:
                             msg = self.get_from_online(
-                                self.customer, row[name_index], row[reference_index]
+                                self.customer, row[data_indexes[0]], row[reference_index]
                             )
                             if msg:
-                                errors[f"{row[name_index]}-{row[reference_index]}"] = \
-                                    f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
+                                errors[f"{row[data_indexes[0]]}-{row[reference_index]}"] = \
+                                    f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[data_indexes[0]]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
                                 break
                             failed = True
                             continue
                 else:
-                    msg = self.get_from_online(self.customer, row[name_index], row[reference_index])
+                    msg = self.get_from_online(self.customer, row[data_indexes[0]], row[reference_index])
                     if msg:
-                        errors[f"{row[name_index]}-{row[reference_index]}"] = \
-                            f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[name_index]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
+                        errors[f"{row[data_indexes[0]]}-{row[reference_index]}"] = \
+                            f"第{row_index + 1}行查询出错，查询信息：{{\"query\": \"{row[data_indexes[0]]}\", \"reference\": \"{row[reference_index]}\"}}，返回信息：{msg}"
                         break
                     failed = True
                     continue

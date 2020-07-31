@@ -84,23 +84,24 @@ class F1Worker(AdvancedWorkerBase):
             else:
                 lost_keys.append(key)
         self.data[0].extend(lost_keys)
-        for index in range(1, len(self.data)):
-            self.data[index].extend(["" for _ in range(len(lost_keys))])
-        date_pattern = re.compile(r"(?P<year>\d{4})[/\s-]*(?P<month>\d{2})[/\s-]*(?P<day>\d{2})")
-        field_to_index = {i: index for index, i in enumerate(self.data[0])}
-        date_index = field_to_index["date"] if self.file_type in "PS" else field_to_index["inventoryReportDate"]
-        control_date_index = field_to_index["controlDate"]
-        for index, row in enumerate(self.data):
-            if index == 0:
-                continue
-            result = date_pattern.search(row[date_index])
-            if not result:
-                if self.data[1][date_index]:
-                    self.error(f"第{index + 1}行发现不合法的日期时间格式: \"{self.data[1][date_index]}\"")
-                else:
-                    self.error(f"第{index + 1}行日期时间为空")
-                return False
-            self.data[index][control_date_index] = \
-                result.groupdict()["year"] + result.groupdict()["month"] + result.groupdict()["day"]
+        if self.transform_type != "ADI":
+            for index in range(1, len(self.data)):
+                self.data[index].extend(["" for _ in range(len(lost_keys))])
+            date_pattern = re.compile(r"(?P<year>\d{4})[/\s-]*(?P<month>\d{2})[/\s-]*(?P<day>\d{2})")
+            field_to_index = {i: index for index, i in enumerate(self.data[0])}
+            date_index = field_to_index["date"] if self.file_type in "PS" else field_to_index["inventoryReportDate"]
+            control_date_index = field_to_index["controlDate"]
+            for index, row in enumerate(self.data):
+                if index == 0:
+                    continue
+                result = date_pattern.search(row[date_index])
+                if not result:
+                    if self.data[1][date_index]:
+                        self.error(f"第{index + 1}行发现不合法的日期时间格式: \"{self.data[1][date_index]}\"")
+                    else:
+                        self.error(f"第{index + 1}行日期时间为空")
+                    return False
+                self.data[index][control_date_index] = \
+                    result.groupdict()["year"] + result.groupdict()["month"] + result.groupdict()["day"]
 
         return True
