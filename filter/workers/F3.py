@@ -153,6 +153,7 @@ class F3Worker(AdvancedWorkerBase):
         for row_index, row in enumerate(self.data):
             if row_index == 0:
                 row.append("origin" + names[0][0].upper() + names[0][1:])
+                continue
             for index in range(5):
                 row[dealer_indexes[index]] = repeat_data[index]
             if not row[data_indexes[0]]:

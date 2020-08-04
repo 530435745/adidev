@@ -87,7 +87,7 @@ class F1Worker(AdvancedWorkerBase):
         if self.transform_type != "ADI":
             for index in range(1, len(self.data)):
                 self.data[index].extend(["" for _ in range(len(lost_keys))])
-            date_pattern = re.compile(r"(?P<year>\d{4})[/\s-]*(?P<month>\d{2})[/\s-]*(?P<day>\d{2})")
+            date_pattern = re.compile(r"(?P<year>\d{4})[/\s-]*(?P<month>\d{1,2})[/\s-]*(?P<day>\d{1,2})")
             field_to_index = {i: index for index, i in enumerate(self.data[0])}
             date_index = field_to_index["date"] if self.file_type in "PS" else field_to_index["inventoryReportDate"]
             control_date_index = field_to_index["controlDate"]
