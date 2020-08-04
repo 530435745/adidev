@@ -133,6 +133,8 @@ class F3Worker(AdvancedWorkerBase):
 
     def real_process(self):
         print(f"F3: {self.input_file}")
+        if self.file_type == "I":
+            return True
         if self.customer not in self.RESULTS:
             self.set_rule(self.customer)
         dealer_indexes = list(
