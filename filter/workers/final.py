@@ -29,7 +29,8 @@ def transform_filter(field, value, filter_type):
             cond2 = data_value >= bottom if bottom else True
             return data_row if all([cond1, cond2]) else []
     else:
-        raise
+        print(filter_type, field, value)
+        # raise
     return _wrapper
 
 
