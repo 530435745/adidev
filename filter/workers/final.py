@@ -30,7 +30,7 @@ def transform_filter(field, value, filter_type):
             return data_row if all([cond1, cond2]) else []
     else:
         print(filter_type, field, value)
-        # raise
+        raise Exception
     return _wrapper
 
 
