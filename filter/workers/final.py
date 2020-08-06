@@ -81,11 +81,7 @@ def get_rules(rules_files):
                 rows.append(row)
             for i in rows:
                 try:
-                    rules[customer].append(
-                        sheet_name_to_transform[ws.title](
-                            *[str(j.value).strip() if j.value is not None else "" for j in i]
-                        )
-                    )
+                    rules[customer].append(sheet_name_to_transform[ws.title](*i))
                 except KeyError:
                     raise ValueError(f"{rules_file}中存在不合法的表名: {ws.title}")
                 except FileNotFoundError:
