@@ -74,7 +74,11 @@ def get_rules(rules_files):
         wb = openpyxl.load_workbook(rules_file)
         rules[customer] = []
         for ws in wb.worksheets:
-            rows = [i for i in ws.rows][1:]
+            rows = []
+            for i in ws.rows:
+                if not any(row := [str(j.value).strip() if j.value is not None else "" for j in i]):
+                    break
+                rows.append(row)
             for i in rows:
                 try:
                     rules[customer].append(
