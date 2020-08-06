@@ -79,7 +79,7 @@ def get_rules(rules_files):
                 if not any(row := [str(j.value).strip() if j.value is not None else "" for j in i]):
                     break
                 rows.append(row)
-            for i in rows:
+            for i in rows[1:]:
                 try:
                     rules[customer].append(sheet_name_to_transform[ws.title](*i))
                 except KeyError:
