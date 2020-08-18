@@ -43,15 +43,15 @@ def before_main():
     for row in rows:
         if not row[0]:
             break
-        aim_dirs[row[0]] = row[1]
+        aim_dirs[row[0]] = row[2]
     # 遍历待分发目录，整体判断该目录下文件是否符合分发标准
     pattern = re.compile(r"(FTP|MNL|ADI)_([IPS])_.+")
     with SplitLogger() as s:
-        for src_dir, dst_dir in aim_dirs.items():
+        for src_dir, sign in aim_dirs.items():
             if not os.path.exists(src_dir):
                 s.data[src_dir]["exception"] = "待分发目录不存在"
                 continue
-            files = [f for f in os.listdir(src_dir) if re.match(pattern, f)]
+            files = [f for f in os.listdir(src_dir) if re.match(re.compile(rf"({sign}).+"), f)]
             if not files:
                 s.data[src_dir]["exception"] = "暂无待分发文件"
                 continue
