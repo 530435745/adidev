@@ -51,7 +51,9 @@ def before_main():
             if not os.path.exists(src_dir):
                 s.data[src_dir]["exception"] = "待分发目录不存在"
                 continue
-            files = [f for f in os.listdir(src_dir) if re.match(re.compile(rf"({sign}).+"), f)]
+            pattern1 = re.compile(rf"({sign})_([IPS])_.+")
+            pattern2 = re.compile(rf"_([IPS])_*({sign}).+")
+            files = [f for f in os.listdir(src_dir) if re.match(pattern1, f) or re.match(pattern2, f)]
             if not files:
                 s.data[src_dir]["exception"] = "暂无待分发文件"
                 continue
